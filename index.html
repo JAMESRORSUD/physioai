@@ -1,0 +1,2617 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#083A8C">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PhysioAI">
+<title>PhysioAI — กายภาพบำบัดอัจฉริยะ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #0B4FBD;
+  --primary-light: #3B7EF6;
+  --primary-dark: #083A8C;
+  --accent: #00C896;
+  --accent-dark: #009970;
+  --warn: #FF6B2B;
+  --danger: #EF4444;
+  --gold: #F59E0B;
+  --bg: #F0F4FF;
+  --bg2: #E8EEFF;
+  --card: #FFFFFF;
+  --text: #0D1B3E;
+  --text2: #4A5568;
+  --text3: #8896AA;
+  --border: rgba(11,79,189,0.12);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(11,79,189,0.10);
+  --shadow-lg: 0 8px 40px rgba(11,79,189,0.16);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+html { height: 100%; height: -webkit-fill-available; }
+html, body { overflow: hidden; background: var(--bg); font-family: 'Sarabun', sans-serif; color: var(--text); }
+body { display: flex; flex-direction: column; height: 100vh; height: calc(var(--vh, 1vh) * 100); }
+
+/* iOS safe area support */
+.screen { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; transition: opacity 0.3s, transform 0.3s; -webkit-overflow-scrolling: touch; overscroll-behavior: none; }
+.screen.hidden { opacity: 0; pointer-events: none; transform: translateY(16px); }
+
+/* bottom nav safe area */
+.bottom-nav { background: var(--card); border-top: 1px solid var(--border); display: flex; padding: 8px 4px; padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); position: sticky; bottom: 0; z-index: 100; flex-shrink: 0; }
+
+/* Touch targets min 44px for iOS HIG */
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px; min-height: 44px; cursor: pointer; transition: all 0.2s; border: none; background: none; }
+.nav-item svg { width: 22px; height: 22px; stroke: var(--text3); fill: none; stroke-width: 1.8; transition: stroke 0.2s; }
+.nav-item span { font-size: 10px; color: var(--text3); font-family: 'Sarabun', sans-serif; transition: color 0.2s; }
+.nav-item.active svg { stroke: var(--primary); }
+.nav-item.active span { color: var(--primary); font-weight: 700; }
+.navbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top, 0px)); background: var(--card); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
+.navbar-logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; }
+.logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 18px; color: var(--primary); letter-spacing: -0.5px; }
+.logo-badge { font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 20px; font-weight: 600; }
+.nav-back { background: none; border: none; cursor: pointer; padding: 8px; color: var(--text2); display: flex; align-items: center; gap: 4px; font-size: 14px; font-family: 'Sarabun', sans-serif; }
+
+/* HOME SCREEN */
+#home { background: var(--bg); }
+.hero { background: linear-gradient(145deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%); padding: 32px 24px 40px; color: #fff; position: relative; overflow: hidden; }
+.hero::before { content: ''; position: absolute; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,0.06); top: -100px; right: -80px; }
+.hero::after { content: ''; position: absolute; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.04); bottom: -80px; left: -50px; }
+.hero-title { font-size: 26px; font-weight: 800; line-height: 1.2; margin-bottom: 8px; position: relative; z-index: 1; }
+.hero-sub { font-size: 15px; opacity: 0.85; margin-bottom: 20px; position: relative; z-index: 1; }
+.hero-stats { display: flex; gap: 16px; position: relative; z-index: 1; }
+.hero-stat { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 16px; text-align: center; backdrop-filter: blur(8px); }
+.hero-stat-num { font-size: 22px; font-weight: 800; }
+.hero-stat-label { font-size: 11px; opacity: 0.8; }
+
+.section { padding: 20px 20px 8px; }
+.section-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+
+/* AGE CARDS */
+.age-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px 20px; }
+.age-card { background: var(--card); border-radius: var(--radius); padding: 18px 16px; border: 2px solid transparent; cursor: pointer; transition: all 0.25s; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+.age-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity 0.25s; }
+.age-card:active { transform: scale(0.97); }
+.age-card.child { border-color: #FF9F43; }
+.age-card.child::before { background: linear-gradient(135deg, #FFF3E0, #FFE0C7); }
+.age-card.teen { border-color: #A855F7; }
+.age-card.teen::before { background: linear-gradient(135deg, #F5F3FF, #EDE9FE); }
+.age-card.adult { border-color: var(--primary); }
+.age-card.adult::before { background: linear-gradient(135deg, #EFF6FF, #DBEAFE); }
+.age-card.senior { border-color: #10B981; }
+.age-card.senior::before { background: linear-gradient(135deg, #ECFDF5, #D1FAE5); }
+.age-card:active::before { opacity: 1; }
+.age-icon { font-size: 36px; margin-bottom: 10px; }
+.age-name { font-size: 15px; font-weight: 700; color: var(--text); }
+.age-range { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.age-tag { font-size: 11px; margin-top: 8px; padding: 3px 8px; border-radius: 20px; display: inline-block; font-weight: 600; }
+.child .age-tag { background: #FFF3E0; color: #D97706; }
+.teen .age-tag { background: #F5F3FF; color: #7C3AED; }
+.adult .age-tag { background: #EFF6FF; color: #1D4ED8; }
+.senior .age-tag { background: #ECFDF5; color: #059669; }
+
+/* QUICK STATS */
+.stats-row { display: flex; gap: 10px; padding: 0 20px 20px; }
+.stat-card { flex: 1; background: var(--card); border-radius: var(--radius-sm); padding: 14px 12px; box-shadow: 0 2px 12px rgba(11,79,189,0.07); }
+.stat-num { font-size: 22px; font-weight: 800; color: var(--primary); }
+.stat-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* PROGRAM SCREEN */
+#program { background: var(--bg); }
+.program-header { padding: 24px 20px 16px; }
+.program-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+.program-sub { font-size: 14px; color: var(--text3); }
+
+.exercise-list { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+.exercise-card { background: var(--card); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.2s; }
+.exercise-card:active { transform: scale(0.98); }
+.ex-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.ex-info { flex: 1; }
+.ex-name { font-size: 16px; font-weight: 700; }
+.ex-detail { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.ex-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; margin-top: 6px; display: inline-block; font-weight: 600; }
+.ex-arrow { color: var(--text3); font-size: 20px; }
+.diff-easy { background: #D1FAE5; color: #065F46; }
+.diff-med { background: #FEF3C7; color: #92400E; }
+.diff-hard { background: #FEE2E2; color: #991B1B; }
+
+/* CAMERA SCREEN */
+#camera-screen { background: #000; }
+.camera-container { position: relative; flex: 1; overflow: hidden; }
+#video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+#overlay-canvas { position: absolute; inset: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+.camera-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; }
+.camera-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.exercise-badge { background: rgba(0,0,0,0.6); border-radius: 24px; padding: 8px 16px; color: #fff; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
+.ex-badge-name { font-size: 16px; font-weight: 700; }
+.ex-badge-mode { font-size: 11px; opacity: 0.75; margin-top: 1px; }
+.score-bubble { background: rgba(0,200,150,0.85); border-radius: 20px; padding: 10px 16px; text-align: center; backdrop-filter: blur(8px); }
+.score-val { font-size: 26px; font-weight: 800; color: #fff; line-height: 1; }
+.score-label { font-size: 10px; color: rgba(255,255,255,0.85); }
+.rep-counter { background: rgba(11,79,189,0.85); border-radius: 20px; padding: 10px 16px; text-align: center; }
+.rep-num { font-size: 32px; font-weight: 800; color: #fff; line-height: 1; }
+.rep-label { font-size: 10px; color: rgba(255,255,255,0.85); }
+
+.camera-bottom { display: flex; flex-direction: column; gap: 10px; }
+.feedback-bar { background: rgba(0,0,0,0.7); border-radius: 14px; padding: 12px 16px; backdrop-filter: blur(12px); }
+.feedback-status { display: flex; align-items: center; gap: 8px; }
+.feedback-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.feedback-dot.good { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.feedback-dot.warn { background: var(--warn); box-shadow: 0 0 8px var(--warn); }
+.feedback-dot.error { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.feedback-text { font-size: 14px; color: #fff; font-weight: 500; }
+.correction-list { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.correction-item { font-size: 12px; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 6px; }
+.correction-item::before { content: '▸'; color: var(--warn); }
+
+.camera-controls { display: flex; gap: 10px; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.cam-btn { flex: 1; border: none; border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700; font-family: 'Sarabun', sans-serif; cursor: pointer; transition: all 0.2s; }
+.cam-btn-stop { background: rgba(239,68,68,0.85); color: #fff; }
+.cam-btn-pause { background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+
+/* QUALITY METER */
+.quality-ring { position: absolute; top: 16px; right: 16px; }
+
+/* RESULTS SCREEN */
+#results { background: var(--bg); }
+.results-hero { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); padding: 32px 24px; color: #fff; text-align: center; }
+.results-score-big { font-size: 72px; font-weight: 800; line-height: 1; }
+.results-grade { font-size: 20px; font-weight: 600; opacity: 0.9; margin-top: 4px; }
+.results-ex { font-size: 14px; opacity: 0.7; margin-top: 8px; }
+.results-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding: 20px; }
+.metric-card { background: var(--card); border-radius: var(--radius-sm); padding: 14px 10px; text-align: center; box-shadow: 0 2px 10px rgba(11,79,189,0.08); }
+.metric-val { font-size: 22px; font-weight: 800; color: var(--primary); }
+.metric-label { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.results-feedback { margin: 0 20px 20px; }
+.feedback-section { background: var(--card); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.feedback-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+.feedback-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.feedback-item:last-child { border-bottom: none; }
+.fi-icon { font-size: 20px; flex-shrink: 0; }
+.fi-text { font-size: 13px; color: var(--text2); line-height: 1.5; }
+.ai-tip { background: linear-gradient(135deg, #EFF6FF, #E0F2FE); border-radius: var(--radius); padding: 16px; margin: 0 20px 20px; border: 1px solid rgba(11,79,189,0.15); }
+.ai-tip-title { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.ai-tip-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.results-actions { padding: 0 20px 32px; display: flex; flex-direction: column; gap: 10px; }
+.btn-primary { background: var(--primary); color: #fff; border: none; border-radius: var(--radius); padding: 16px; font-size: 16px; font-weight: 700; font-family: 'Sarabun', sans-serif; cursor: pointer; transition: all 0.2s; }
+.btn-primary:active { transform: scale(0.98); background: var(--primary-dark); }
+.btn-secondary { background: var(--card); color: var(--primary); border: 2px solid var(--primary); border-radius: var(--radius); padding: 14px; font-size: 15px; font-weight: 700; font-family: 'Sarabun', sans-serif; cursor: pointer; }
+
+/* DASHBOARD SCREEN */
+#dashboard { background: var(--bg); }
+.dash-section { padding: 16px 20px; }
+.dash-section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--text); }
+.chart-container { background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.chart-bars { display: flex; align-items: flex-end; gap: 6px; height: 100px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--primary); transition: height 0.5s ease; min-height: 4px; }
+.bar-label { font-size: 10px; color: var(--text3); }
+.streak-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.streak-dot { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+.streak-dot.done { background: var(--primary); color: #fff; }
+.streak-dot.today { background: var(--accent); color: #fff; }
+.streak-dot.miss { background: var(--bg2); color: var(--text3); }
+.history-list { display: flex; flex-direction: column; gap: 8px; }
+.history-item { background: var(--card); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(11,79,189,0.06); }
+.hi-left { display: flex; flex-direction: column; }
+.hi-name { font-size: 14px; font-weight: 600; }
+.hi-date { font-size: 11px; color: var(--text3); margin-top: 2px; }
+.hi-score { font-size: 20px; font-weight: 800; color: var(--primary); }
+.leaderboard { display: flex; flex-direction: column; gap: 8px; }
+.lb-item { background: var(--card); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 8px rgba(11,79,189,0.06); }
+.lb-rank { font-size: 18px; font-weight: 800; width: 28px; text-align: center; }
+.lb-rank.gold { color: #F59E0B; }
+.lb-rank.silver { color: #9CA3AF; }
+.lb-rank.bronze { color: #B45309; }
+.lb-info { flex: 1; }
+.lb-name { font-size: 14px; font-weight: 700; }
+.lb-score { font-size: 12px; color: var(--text3); }
+.lb-pts { font-size: 16px; font-weight: 800; color: var(--primary); }
+
+/* LOADING */
+.loading-overlay { position: fixed; inset: 0; background: var(--primary-dark); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s; }
+.loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.loading-logo { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary-light), var(--accent)); border-radius: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,200,150,0.4); animation: pulse 2s infinite; }
+.loading-logo svg { width: 44px; height: 44px; fill: none; stroke: #fff; stroke-width: 2; }
+.loading-text { font-size: 24px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+.loading-sub { font-size: 14px; color: rgba(255,255,255,0.6); margin-top: 8px; }
+.loading-bar { width: 200px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 24px; overflow: hidden; }
+.loading-progress { height: 100%; background: var(--accent); border-radius: 2px; animation: load 1.8s ease forwards; }
+
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes load { from { width: 0; } to { width: 100%; } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes countUp { from { transform: scale(1.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes ripple { to { transform: scale(3); opacity: 0; } }
+
+.animate-in { animation: fadeIn 0.4s ease; }
+.count-anim { animation: countUp 0.3s ease; }
+
+/* POSE GUIDE */
+.pose-guide { position: absolute; inset: 0; background: rgba(0,0,0,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; transition: opacity 0.4s; }
+.pose-guide.hidden { opacity: 0; pointer-events: none; }
+.pose-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 8px; text-align: center; }
+.pose-body { font-size: 14px; color: rgba(255,255,255,0.75); text-align: center; line-height: 1.6; margin-bottom: 20px; }
+.pose-demo { width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 64px; margin-bottom: 20px; border: 2px solid rgba(255,255,255,0.2); }
+.btn-start-exercise { background: var(--accent); color: #fff; border: none; border-radius: 16px; padding: 18px 40px; font-size: 18px; font-weight: 700; font-family: 'Sarabun', sans-serif; cursor: pointer; box-shadow: 0 4px 20px rgba(0,200,150,0.4); min-height: 56px; }
+
+/* ACHIEVEMENT POPUP */
+.achievement-popup { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-100px); background: linear-gradient(135deg, #F59E0B, #D97706); color: #fff; border-radius: 16px; padding: 14px 20px; display: flex; align-items: center; gap: 12px; z-index: 9000; transition: transform 0.4s ease; box-shadow: 0 8px 24px rgba(245,158,11,0.4); white-space: nowrap; }
+.achievement-popup.show { transform: translateX(-50%) translateY(0); }
+.ach-icon { font-size: 28px; }
+.ach-text { font-size: 14px; font-weight: 700; }
+.ach-sub { font-size: 11px; opacity: 0.85; }
+
+/* ALERT SECTION */
+.alert-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 8000; padding: 20px; }
+.alert-modal.hidden { display: none; }
+.alert-box { background: var(--card); border-radius: var(--radius); padding: 24px; max-width: 320px; width: 100%; }
+.alert-title { font-size: 18px; font-weight: 800; color: var(--danger); margin-bottom: 8px; }
+.alert-body { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
+.alert-actions { display: flex; gap: 10px; }
+.alert-btn { flex: 1; padding: 12px; border-radius: var(--radius-sm); border: none; font-size: 14px; font-weight: 700; font-family: 'Sarabun', sans-serif; cursor: pointer; }
+.alert-btn-primary { background: var(--primary); color: #fff; }
+.alert-btn-secondary { background: var(--bg); color: var(--text2); }
+
+/* ===== TODAY BANNER ===== */
+.today-banner { margin: 0 20px 12px; padding: 12px 16px; border-radius: 14px; font-size: 13px; font-weight: 600; display: none; }
+.today-banner.show { display: block; }
+.today-banner.is-today { background: linear-gradient(135deg,#EFF6FF,#DBEAFE); color: var(--primary); border: 1px solid rgba(11,79,189,0.15); }
+.today-banner.is-future { background: #F5F3FF; color: #7C3AED; border: 1px solid rgba(124,58,237,0.15); }
+.today-banner.is-done { background: #ECFDF5; color: #059669; border: 1px solid rgba(16,185,129,0.2); }
+.today-banner.is-miss { background: #FEF2F2; color: #991B1B; border: 1px solid rgba(239,68,68,0.15); }
+.banner-date { font-size: 11px; opacity: 0.7; margin-top: 2px; font-weight: 400; }
+
+/* ===== REST VIEW ===== */
+.today-rest-view { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; text-align: center; }
+.rest-icon { font-size: 64px; margin-bottom: 16px; }
+.rest-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+.rest-body { font-size: 14px; color: var(--text3); line-height: 1.7; margin-bottom: 16px; }
+.rest-next { font-size: 13px; background: var(--card); border-radius: 12px; padding: 10px 18px; color: var(--primary); font-weight: 600; border: 1px solid var(--border); box-shadow: var(--shadow); }
+
+/* ===== PROGRAM TABS ===== */
+.prog-tabs { display: flex; margin: 0 20px 16px; background: var(--bg2); border-radius: 12px; padding: 4px; gap: 4px; }
+.prog-tab { flex: 1; padding: 9px 4px; border: none; border-radius: 9px; font-family: 'Sarabun', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; color: var(--text3); transition: all 0.2s; }
+.prog-tab.active { background: var(--card); color: var(--primary); box-shadow: 0 2px 8px rgba(11,79,189,0.12); }
+
+/* ===== CALENDAR SCREEN ===== */
+#calendar-view { display: none; padding: 0 16px 24px; }
+#calendar-view.active { display: block; }
+
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cal-nav-btn { background: var(--card); border: 1px solid var(--border); border-radius: 10px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; box-shadow: 0 2px 6px rgba(11,79,189,0.07); transition: background 0.15s; }
+.cal-nav-btn:hover { background: var(--bg2); }
+.cal-month-label { font-size: 17px; font-weight: 800; color: var(--text); }
+
+.cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; margin-bottom: 6px; }
+.cal-wd { font-size: 11px; font-weight: 700; color: var(--text3); padding: 4px 0; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-cell { border-radius: 10px; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 5px 2px 4px; cursor: pointer; transition: all 0.18s; position: relative; background: var(--card); border: 1.5px solid var(--border); }
+.cal-cell:hover { border-color: var(--primary); background: var(--bg); transform: scale(1.04); z-index:2; }
+.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; pointer-events: none; }
+.cal-cell.today { border-color: var(--primary); background: #EFF6FF; }
+.cal-cell.today .cal-day { color: var(--primary); font-weight: 800; }
+.cal-cell.rest-day { background: var(--bg2); }
+.cal-cell.past-done { background: #ECFDF5; border-color: #10B981; }
+.cal-cell.past-miss { background: #FEF2F2; border-color: transparent; }
+.cal-cell.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(11,79,189,0.25); }
+
+.cal-day { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 3px; }
+.cal-day-sun { color: #EF4444; }
+.cal-day-sat { color: #6366F1; }
+.cal-dot-wrap { display: flex; flex-direction: column; gap: 2px; align-items: center; width: 100%; }
+.cal-dot { width: 18px; height: 5px; border-radius: 3px; font-size: 0; }
+.cal-rest-label { font-size: 8px; color: var(--text3); font-weight: 600; margin-top: 2px; letter-spacing: 0.3px; }
+.cal-done-check { position: absolute; top: 3px; right: 4px; font-size: 9px; }
+
+/* ===== DAY DETAIL PANEL ===== */
+.day-detail { background: var(--card); border-radius: 16px; margin-top: 14px; padding: 18px; box-shadow: var(--shadow); animation: fadeIn 0.25s ease; }
+.day-detail-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.day-detail-title { font-size: 15px; font-weight: 800; color: var(--text); }
+.day-detail-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
+.badge-rest { background: var(--bg2); color: var(--text3); }
+.badge-active { background: #EFF6FF; color: var(--primary); }
+.badge-done { background: #ECFDF5; color: #059669; }
+
+.day-exercises { display: flex; flex-direction: column; gap: 10px; }
+.day-ex-row { background: var(--bg); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.15s; border: 1px solid var(--border); }
+.day-ex-row:hover { background: var(--bg2); }
+.day-ex-emoji { font-size: 22px; flex-shrink: 0; width: 36px; text-align: center; }
+.day-ex-info { flex: 1; }
+.day-ex-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.day-ex-reps { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.day-ex-diff { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+.day-ex-arrow { color: var(--text3); font-size: 18px; }
+.day-rest-msg { text-align: center; padding: 20px 0 8px; }
+.day-rest-emoji { font-size: 40px; margin-bottom: 8px; }
+.day-rest-text { font-size: 14px; color: var(--text2); line-height: 1.6; }
+
+.cal-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text3); }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* ===== MONTH SUMMARY ===== */
+.month-summary { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); border-radius: 14px; padding: 14px 16px; color: #fff; margin-bottom: 14px; display: flex; gap: 0; }
+.ms-item { flex: 1; text-align: center; }
+.ms-item + .ms-item { border-left: 1px solid rgba(255,255,255,0.2); }
+.ms-num { font-size: 22px; font-weight: 800; line-height: 1; }
+.ms-label { font-size: 10px; opacity: 0.75; margin-top: 2px; }
+
+/* list view for exercise-list tab hiding */
+#exercise-list-view { }
+#exercise-list-view.hidden { display: none; }
+
+/* ===== RESPONSIVE FONT SCALING ===== */
+html { font-size: clamp(14px, 3.8vw, 16px); }
+.hero-title { font-size: clamp(20px, 5.5vw, 28px) !important; }
+.hero-sub { font-size: clamp(12px, 3.2vw, 15px) !important; }
+.section-title { font-size: clamp(14px, 4vw, 17px) !important; }
+.age-name { font-size: clamp(13px, 3.8vw, 16px) !important; }
+.age-range { font-size: clamp(10px, 2.8vw, 13px) !important; }
+.age-tag { font-size: clamp(9px, 2.5vw, 12px) !important; }
+.ex-name { font-size: clamp(14px, 4vw, 17px) !important; }
+.ex-detail { font-size: clamp(11px, 2.8vw, 13px) !important; }
+.program-title { font-size: clamp(18px, 5vw, 24px) !important; }
+.program-sub { font-size: clamp(12px, 3.2vw, 15px) !important; }
+.metric-val { font-size: clamp(18px, 4.8vw, 24px) !important; }
+.metric-label { font-size: clamp(9px, 2.4vw, 12px) !important; }
+.results-score-big { font-size: clamp(52px, 14vw, 76px) !important; }
+.results-grade { font-size: clamp(16px, 4.5vw, 22px) !important; }
+.fi-text { font-size: clamp(11px, 3.2vw, 14px) !important; }
+.ai-tip-text { font-size: clamp(11px, 3.2vw, 14px) !important; }
+.btn-primary { font-size: clamp(14px, 4vw, 17px) !important; }
+.btn-secondary { font-size: clamp(13px, 3.8vw, 16px) !important; }
+.hi-name { font-size: clamp(12px, 3.4vw, 15px) !important; }
+.hi-date { font-size: clamp(9px, 2.5vw, 12px) !important; }
+.hi-score { font-size: clamp(16px, 4.5vw, 22px) !important; }
+.stat-num { font-size: clamp(18px, 5vw, 24px) !important; }
+.stat-label { font-size: clamp(9px, 2.4vw, 12px) !important; }
+.ms-num { font-size: clamp(18px, 5vw, 24px) !important; }
+.ms-label { font-size: clamp(8px, 2.2vw, 11px) !important; }
+.hero-stat-num { font-size: clamp(18px, 5vw, 24px) !important; }
+.hero-stat-label { font-size: clamp(9px, 2.4vw, 11px) !important; }
+.day-ex-name { font-size: clamp(12px, 3.4vw, 15px) !important; }
+.day-ex-reps { font-size: clamp(10px, 2.7vw, 13px) !important; }
+.nav-item span { font-size: clamp(9px, 2.4vw, 11px) !important; }
+.cam-btn { font-size: clamp(13px, 3.5vw, 16px) !important; }
+.feedback-text { font-size: clamp(12px, 3.3vw, 15px) !important; }
+.correction-item { font-size: clamp(10px, 2.8vw, 13px) !important; }
+.ex-badge-name { font-size: clamp(13px, 3.8vw, 17px) !important; }
+.score-val { font-size: clamp(22px, 6vw, 28px) !important; }
+.rep-num { font-size: clamp(26px, 7.5vw, 34px) !important; }
+.pose-title { font-size: clamp(18px, 5vw, 24px) !important; }
+.pose-body { font-size: clamp(12px, 3.3vw, 15px) !important; }
+.btn-start-exercise { font-size: clamp(15px, 4.2vw, 19px) !important; }
+.logo-text { font-size: clamp(15px, 4.2vw, 19px) !important; }
+.alert-title { font-size: clamp(15px, 4.2vw, 19px) !important; }
+.alert-body { font-size: clamp(12px, 3.3vw, 15px) !important; }
+.lb-name { font-size: clamp(12px, 3.4vw, 15px) !important; }
+.lb-score { font-size: clamp(10px, 2.7vw, 12px) !important; }
+.lb-pts { font-size: clamp(14px, 3.8vw, 17px) !important; }
+.rest-title { font-size: clamp(18px, 5vw, 24px) !important; }
+.rest-body { font-size: clamp(12px, 3.3vw, 15px) !important; }
+.rest-next { font-size: clamp(11px, 3vw, 14px) !important; }
+.prog-tab { font-size: clamp(11px, 3vw, 14px) !important; }
+.cal-month-label { font-size: clamp(14px, 4vw, 18px) !important; }
+.cal-day { font-size: clamp(10px, 2.7vw, 13px) !important; }
+.cal-rest-label { font-size: clamp(7px, 2vw, 9px) !important; }
+.day-detail-title { font-size: clamp(13px, 3.5vw, 16px) !important; }
+.dash-section-title { font-size: clamp(13px, 3.5vw, 16px) !important; }
+.bar-label { font-size: clamp(9px, 2.4vw, 11px) !important; }
+.streak-dot { font-size: clamp(10px, 2.7vw, 12px) !important; }
+
+/* ===== POSE DEMO OVERLAY (enhanced) ===== */
+.pose-guide {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(8,30,70,0.96) 0%, rgba(11,79,189,0.92) 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 20px 20px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  transition: opacity 0.4s;
+}
+.pose-guide.hidden { opacity: 0; pointer-events: none; }
+
+.pose-demo-wrap {
+  width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; align-items: center;
+}
+
+.pose-svg-box {
+  width: 160px; height: 180px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 20px;
+  border: 2px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 14px;
+  position: relative; overflow: hidden;
+}
+.pose-svg-box::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(0,200,150,0.12), transparent 70%);
+}
+.pose-svg-box svg { width: 140px; height: 160px; }
+
+.pose-steps {
+  width: 100%; background: rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 14px 16px; margin-bottom: 14px;
+}
+.pose-step-title {
+  font-size: clamp(12px, 3.2vw, 14px); color: var(--accent);
+  font-weight: 700; margin-bottom: 10px; letter-spacing: 0.3px;
+}
+.pose-step-list { display: flex; flex-direction: column; gap: 8px; }
+.pose-step-item {
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.pose-step-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: clamp(10px, 2.7vw, 12px); font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.pose-step-text {
+  font-size: clamp(12px, 3.2vw, 14px); color: rgba(255,255,255,0.9);
+  line-height: 1.5;
+}
+
+.pose-warning {
+  width: 100%; background: rgba(255,107,43,0.2);
+  border: 1px solid rgba(255,107,43,0.4);
+  border-radius: 12px; padding: 10px 14px;
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px;
+}
+.pose-warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.pose-warning-text { font-size: clamp(11px, 2.9vw, 13px); color: rgba(255,255,255,0.85); line-height: 1.5; }
+
+/* ===== MEDICAL EVIDENCE PANEL ===== */
+.medical-badge {
+  width: 100%; background: rgba(0,200,150,0.15);
+  border: 1px solid rgba(0,200,150,0.35);
+  border-radius: 12px; padding: 10px 14px;
+  display: flex; align-items: flex-start; gap: 8px; margin-bottom: 16px;
+}
+.med-badge-icon { font-size: 16px; flex-shrink: 0; }
+.med-badge-text { font-size: clamp(10px, 2.7vw, 12px); color: rgba(255,255,255,0.8); line-height: 1.5; }
+.med-badge-text strong { color: var(--accent); }
+
+/* Evidence section in program screen */
+.evidence-banner {
+  margin: 0 20px 14px;
+  background: linear-gradient(135deg, #EFF6FF, #E0F2FE);
+  border: 1px solid rgba(11,79,189,0.18);
+  border-radius: 14px; padding: 14px 16px;
+}
+.evidence-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+}
+.evidence-header-icon { font-size: 18px; }
+.evidence-header-title {
+  font-size: clamp(13px, 3.5vw, 15px); font-weight: 800; color: var(--primary);
+}
+.evidence-header-badge {
+  margin-left: auto; font-size: clamp(9px, 2.4vw, 11px);
+  background: var(--primary); color: #fff;
+  padding: 2px 8px; border-radius: 20px; font-weight: 700;
+}
+.evidence-items { display: flex; flex-direction: column; gap: 6px; }
+.evidence-item {
+  display: flex; align-items: flex-start; gap: 8px;
+}
+.evidence-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--primary); flex-shrink: 0; margin-top: 6px;
+}
+.evidence-text {
+  font-size: clamp(11px, 2.9vw, 13px); color: var(--text2); line-height: 1.5;
+}
+.evidence-source {
+  font-size: clamp(9px, 2.3vw, 11px); color: var(--text3);
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px solid rgba(11,79,189,0.1);
+  font-style: italic;
+}
+
+/* Rest day — medical rationale */
+.rest-science {
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 14px; padding: 14px 16px;
+  margin: 12px 24px 0; text-align: left;
+}
+.rest-science-title {
+  font-size: clamp(12px, 3.2vw, 14px); font-weight: 800;
+  color: #059669; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.rest-science-text {
+  font-size: clamp(11px, 2.9vw, 13px); color: #065F46; line-height: 1.6;
+}
+.rest-science-ref {
+  font-size: clamp(9px, 2.3vw, 11px); color: #6EE7B7; margin-top: 6px; font-style: italic;
+}
+
+/* Timer display in exercise */
+.exercise-timer-badge {
+  background: rgba(245,158,11,0.85);
+  border-radius: 20px; padding: 8px 14px; text-align: center;
+}
+.timer-val { font-size: clamp(22px, 6vw, 28px); font-weight: 800; color: #fff; line-height: 1; }
+.timer-label { font-size: clamp(9px, 2.4vw, 11px); color: rgba(255,255,255,0.85); }
+
+/* Timed exercise mode */
+.timed-progress {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: rgba(255,255,255,0.2);
+}
+.timed-progress-fill {
+  height: 100%; background: var(--accent); transition: width 1s linear;
+}
+
+@keyframes pose-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.97); }
+}
+.pose-svg-box svg { animation: pose-pulse 2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-logo">
+    <svg viewBox="0 0 44 44"><path d="M22 8 C22 8 16 14 8 16 C8 24 12 34 22 38 C32 34 36 24 36 16 C28 14 22 8 22 8Z" stroke-width="2.5" stroke-linejoin="round"/><path d="M16 22 L20 26 L28 18" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"/></svg>
+  </div>
+  <div class="loading-text">PhysioAI</div>
+  <div class="loading-sub">กายภาพบำบัดอัจฉริยะ</div>
+  <div class="loading-bar"><div class="loading-progress"></div></div>
+</div>
+
+<!-- ACHIEVEMENT POPUP -->
+<div class="achievement-popup" id="ach-popup">
+  <div class="ach-icon" id="ach-icon">🏆</div>
+  <div>
+    <div class="ach-text" id="ach-title">Achievement!</div>
+    <div class="ach-sub" id="ach-sub">ทำได้ดีมาก</div>
+  </div>
+</div>
+
+<!-- ALERT MODAL -->
+<div class="alert-modal hidden" id="alert-modal">
+  <div class="alert-box">
+    <div class="alert-title">⚠️ ตรวจพบความผิดปกติ</div>
+    <div class="alert-body" id="alert-body">ผู้สูงอายุอาจต้องการความช่วยเหลือ กรุณาตรวจสอบ</div>
+    <div class="alert-actions">
+      <button class="alert-btn alert-btn-secondary" onclick="closeAlert()">ไม่เป็นไร</button>
+      <button class="alert-btn alert-btn-primary" onclick="callCaregiver()">แจ้งผู้ดูแล</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME SCREEN -->
+<div class="screen" id="home">
+  <div class="navbar">
+    <div class="navbar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 3C12 3 8 7 3 9C3 14 6 20 12 22C18 20 21 14 21 9C16 7 12 3 12 3Z"/><path d="M9 12L11 14L15 10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">PhysioAI</div>
+      </div>
+    </div>
+    <span class="logo-badge">AI Beta</span>
+  </div>
+
+  <div class="hero">
+    <div class="hero-title">สวัสดี 👋<br>เริ่มออกกำลังกาย</div>
+    <div class="hero-sub">AI ตรวจท่าทาง ให้คะแนน และแนะนำการฝึกที่เหมาะกับคุณ</div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num" id="stat-sessions">0</div>
+        <div class="hero-stat-label">ครั้งฝึก</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num" id="stat-avg">—</div>
+        <div class="hero-stat-label">คะแนนเฉลี่ย</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num" id="stat-streak">0</div>
+        <div class="hero-stat-label">วันต่อเนื่อง</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section"><div class="section-title">🎯 เลือกช่วงวัยของคุณ</div></div>
+  <div class="age-grid">
+    <div class="age-card child animate-in" onclick="selectAge('child')" style="animation-delay:0.05s">
+      <div class="age-icon">👦</div>
+      <div class="age-name">วัยเด็ก</div>
+      <div class="age-range">5 – 12 ปี</div>
+      <div class="age-tag">เกม & ความสนุก</div>
+    </div>
+    <div class="age-card teen animate-in" onclick="selectAge('teen')" style="animation-delay:0.1s">
+      <div class="age-icon">🧑</div>
+      <div class="age-name">วัยรุ่น</div>
+      <div class="age-range">13 – 22 ปี</div>
+      <div class="age-tag">แข่งคะแนน</div>
+    </div>
+    <div class="age-card adult animate-in" onclick="selectAge('adult')" style="animation-delay:0.15s">
+      <div class="age-icon">👨‍💼</div>
+      <div class="age-name">วัยทำงาน</div>
+      <div class="age-range">23 – 55 ปี</div>
+      <div class="age-tag">ออฟฟิศซินโดรม</div>
+    </div>
+    <div class="age-card senior animate-in" onclick="selectAge('senior')" style="animation-delay:0.2s">
+      <div class="age-icon">👴</div>
+      <div class="age-name">วัยสูงอายุ</div>
+      <div class="age-range">56 ปีขึ้นไป</div>
+      <div class="age-tag">ปลอดภัย & ช้า</div>
+    </div>
+  </div>
+
+  <div class="section"><div class="section-title">📊 สถิติสัปดาห์นี้</div></div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="weekly-reps">0</div>
+      <div class="stat-label">ท่าทั้งหมด</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="weekly-mins">0</div>
+      <div class="stat-label">นาทีฝึก</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="weekly-score">—</div>
+      <div class="stat-label">คะแนนดีที่สุด</div>
+    </div>
+  </div>
+
+  <div style="height: 20px;"></div>
+  <div class="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('home',0)">
+      <svg viewBox="0 0 24 24"><path d="M3 9L12 2L21 9V20A1 1 0 0120 21H15V16H9V21H4A1 1 0 013 20V9Z"/></svg>
+      <span>หน้าหลัก</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('dashboard',2)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>แดชบอร์ด</span>
+    </button>
+    <button class="nav-item" onclick="showAlert('เปิดการแจ้งเตือนผู้ดูแลในหน้าการฝึกของผู้สูงอายุ')">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span>แจ้งเตือน</span>
+    </button>
+  </div>
+</div>
+
+<!-- PROGRAM SCREEN -->
+<div class="screen hidden" id="program">
+  <div class="navbar">
+    <button class="nav-back" onclick="showScreen('home',0)" style="min-height:44px;min-width:44px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      กลับ
+    </button>
+    <div style="font-weight:700;font-size:16px" id="program-title-nav">โปรแกรมวัยทำงาน</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="program-header">
+    <div class="program-title" id="prog-main-title">🧑‍💼 วัยทำงาน</div>
+    <div class="program-sub" id="prog-sub">แก้ออฟฟิศซินโดรม ยืดกล้ามเนื้อ บรรเทาปวดหลัง</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="prog-tabs">
+    <button class="prog-tab active" id="tab-list" onclick="switchProgTab('list')">📋 วันนี้</button>
+    <button class="prog-tab" id="tab-cal" onclick="switchProgTab('cal')">📅 ปฏิทินรายเดือน</button>
+  </div>
+
+  <!-- MEDICAL EVIDENCE BANNER -->
+  <div class="evidence-banner" id="evidence-banner">
+    <div class="evidence-header">
+      <div class="evidence-header-icon">🔬</div>
+      <div class="evidence-header-title" id="evidence-title">หลักฐานทางการแพทย์</div>
+      <div class="evidence-header-badge">Evidence-Based</div>
+    </div>
+    <div class="evidence-items" id="evidence-items"></div>
+    <div class="evidence-source" id="evidence-source"></div>
+  </div>
+
+  <!-- TODAY VIEW (synced with calendar) -->
+  <div id="exercise-list-view" style="display:block">
+    <div id="today-banner" class="today-banner"></div>
+    <div class="exercise-list" id="exercise-list"></div>
+    <div id="today-rest-view" class="today-rest-view" style="display:none">
+      <div class="rest-icon">🌿</div>
+      <div class="rest-title">วันพักผ่อน</div>
+      <div class="rest-body">ให้กล้ามเนื้อได้ฟื้นตัว<br>วันพรุ่งนี้พร้อมฝึกอีกครั้ง</div>
+      <div class="rest-next" id="rest-next-label"></div>
+      <div class="rest-science" id="rest-science-panel">
+        <div class="rest-science-title">🔬 ทำไมต้องพัก? หลักการแพทย์</div>
+        <div class="rest-science-text" id="rest-science-text">กล้ามเนื้อซ่อมแซมตัวเองใน 48–72 ชั่วโมง</div>
+        <div class="rest-science-ref" id="rest-science-ref">ACSM Guidelines, 2022</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div id="calendar-view">
+    <div class="month-summary" id="cal-month-summary"></div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calChangeMonth(-1)">&#8249;</button>
+      <div class="cal-month-label" id="cal-month-label">—</div>
+      <button class="cal-nav-btn" onclick="calChangeMonth(1)">&#8250;</button>
+    </div>
+    <div class="cal-weekdays">
+      <div class="cal-wd cal-day-sun">อา</div>
+      <div class="cal-wd">จ</div>
+      <div class="cal-wd">อ</div>
+      <div class="cal-wd">พ</div>
+      <div class="cal-wd">พฤ</div>
+      <div class="cal-wd">ศ</div>
+      <div class="cal-wd cal-day-sat">ส</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#EFF6FF;border:1.5px solid var(--primary)"></div>วันนี้</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ECFDF5;border:1.5px solid #10B981"></div>ทำแล้ว</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--bg2)"></div>วันพัก</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--card);border:1.5px solid var(--border)"></div>วันฝึก</div>
+    </div>
+    <div class="day-detail" id="day-detail" style="display:none"></div>
+  </div>
+
+  <div style="height: 24px;"></div>
+</div>
+
+<!-- CAMERA / EXERCISE SCREEN -->
+<div class="screen hidden" id="camera-screen">
+  <div class="camera-container" id="camera-container">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay-canvas"></canvas>
+    
+    <!-- POSE GUIDE OVERLAY -->
+    <div class="pose-guide" id="pose-guide">
+      <div class="pose-demo-wrap">
+        <div class="pose-svg-box" id="pose-svg-box">
+          <!-- SVG injected by JS -->
+        </div>
+        <div class="pose-title" id="pose-guide-title">สควอท</div>
+        <div class="pose-body" id="pose-guide-body" style="color:rgba(255,255,255,0.7);font-size:clamp(11px,3vw,13px);text-align:center;margin-bottom:10px"></div>
+
+        <div class="pose-steps" id="pose-steps">
+          <div class="pose-step-title">📋 ขั้นตอนที่ถูกต้อง</div>
+          <div class="pose-step-list" id="pose-step-list"></div>
+        </div>
+
+        <div class="pose-warning" id="pose-warning" style="display:none">
+          <div class="pose-warning-icon">⚠️</div>
+          <div class="pose-warning-text" id="pose-warning-text"></div>
+        </div>
+
+        <div class="medical-badge" id="pose-medical-badge">
+          <div class="med-badge-icon">🔬</div>
+          <div class="med-badge-text" id="pose-medical-text">อ้างอิงตามหลักกายภาพบำบัด</div>
+        </div>
+
+        <button class="btn-start-exercise" onclick="startExercise()">🎯 เริ่มออกกำลังกาย</button>
+      </div>
+    </div>
+
+    <!-- CAMERA UI OVERLAY -->
+    <div class="camera-ui" id="cam-ui" style="display:none">
+      <div class="camera-top">
+        <div class="exercise-badge">
+          <div class="ex-badge-name" id="cam-ex-name">สควอท</div>
+          <div class="ex-badge-mode" id="cam-age-mode">🧑‍💼 วัยทำงาน</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <div class="score-bubble">
+            <div class="score-val" id="live-score">—</div>
+            <div class="score-label">คะแนน</div>
+          </div>
+          <div class="rep-counter" id="rep-counter-wrap">
+            <div class="rep-num" id="rep-count">0</div>
+            <div class="rep-label" id="rep-label">ครั้ง</div>
+          </div>
+          <div class="exercise-timer-badge" id="timer-badge" style="display:none">
+            <div class="timer-val" id="exercise-timer">0:00</div>
+            <div class="timer-label">เวลา</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="camera-bottom">
+        <div class="feedback-bar">
+          <div class="feedback-status">
+            <div class="feedback-dot" id="feed-dot"></div>
+            <div class="feedback-text" id="feed-text">กำลังตรวจจับท่าทาง...</div>
+          </div>
+          <div class="correction-list" id="correction-list"></div>
+        </div>
+        <div class="camera-controls">
+          <button class="cam-btn cam-btn-pause" id="pause-btn" onclick="togglePause()">⏸ หยุดชั่วคราว</button>
+          <button class="cam-btn cam-btn-stop" onclick="stopExercise()">✓ เสร็จแล้ว</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div class="screen hidden" id="results">
+  <div class="navbar">
+    <button class="nav-back" onclick="showScreen('program',1)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      กลับ
+    </button>
+    <div style="font-weight:700;font-size:16px">ผลการฝึก</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="results-hero">
+    <div class="results-score-big" id="final-score">85</div>
+    <div class="results-grade" id="final-grade">ดีมาก! 🎉</div>
+    <div class="results-ex" id="final-ex">สควอท • วัยทำงาน</div>
+  </div>
+  <div class="results-metrics">
+    <div class="metric-card">
+      <div class="metric-val" id="r-reps">12</div>
+      <div class="metric-label">ครั้งทั้งหมด</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" id="r-correct">10</div>
+      <div class="metric-label">ครั้งถูกต้อง</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" id="r-time">2:30</div>
+      <div class="metric-label">เวลาฝึก</div>
+    </div>
+  </div>
+  <div class="results-feedback">
+    <div class="feedback-section">
+      <div class="feedback-title">📋 สิ่งที่ต้องปรับปรุง</div>
+      <div id="feedback-items"></div>
+    </div>
+  </div>
+  <div class="ai-tip">
+    <div class="ai-tip-title">🤖 AI แนะนำ</div>
+    <div class="ai-tip-text" id="ai-tip-text">เยี่ยมมาก! ลองเพิ่มจำนวนครั้งในรอบหน้า หรือเปลี่ยนไปฝึกยืดไหล่เพื่อช่วยแก้ออฟฟิศซินโดรม</div>
+  </div>
+  <div class="results-actions">
+    <button class="btn-primary" onclick="retryExercise()">🔄 ฝึกอีกรอบ</button>
+    <button class="btn-secondary" onclick="showScreen('program',1)">📋 เลือกท่าอื่น</button>
+  </div>
+  <div style="height:20px"></div>
+</div>
+
+<!-- DASHBOARD SCREEN -->
+<div class="screen hidden" id="dashboard">
+  <div class="navbar">
+    <button class="nav-back" onclick="showScreen('home',0)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      กลับ
+    </button>
+    <div style="font-weight:700;font-size:16px">แดชบอร์ด</div>
+    <div style="width:60px"></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">📈 คะแนน 7 วันที่ผ่านมา</div>
+    <div class="chart-container">
+      <div class="chart-bars" id="chart-bars"></div>
+    </div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">🔥 สายต่อเนื่อง</div>
+    <div class="streak-row" id="streak-row"></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">📜 ประวัติล่าสุด</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <div class="dash-section">
+    <div class="dash-section-title">🏆 อันดับสัปดาห์นี้</div>
+    <div class="leaderboard" id="leaderboard"></div>
+  </div>
+  <div style="height:20px"></div>
+
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('home',0)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9L12 2L21 9V20A1 1 0 0120 21H15V16H9V21H4A1 1 0 013 20V9Z"/></svg>
+      <span>หน้าหลัก</span>
+    </button>
+    <button class="nav-item active" onclick="showScreen('dashboard',2)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>แดชบอร์ด</span>
+    </button>
+    <button class="nav-item" onclick="showScreen('home',0)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+      <span>แจ้งเตือน</span>
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+
+<script>
+// ============================================================
+// DATA & STATE
+// ============================================================
+
+// ===== MEDICAL EVIDENCE PER AGE =====
+const MEDICAL_EVIDENCE = {
+  child: {
+    title: 'หลักฐานทางการแพทย์ — วัยเด็ก (5–12 ปี)',
+    items: [
+      'WHO แนะนำให้เด็กออกกำลังกาย ≥60 นาที/วัน ระดับปานกลาง-หนัก',
+      'กิจกรรมที่มีแรงกระแทก (กระโดด วิ่ง) ช่วยสร้างความหนาแน่นกระดูกได้ถึง 80%',
+      'การฝึกทรงตัวลดอัตราการบาดเจ็บในเด็กได้ 35% (Pediatrics Journal, 2021)',
+    ],
+    restReason: 'เด็กวัยเรียนต้องการพักสัปดาห์ละ 2 วัน เพื่อให้ระบบประสาทและกล้ามเนื้อที่กำลังพัฒนาได้ฟื้นตัวอย่างเต็มที่ การพักช่วยเพิ่มประสิทธิภาพการเรียนรู้ทักษะการเคลื่อนไหว',
+    restRef: 'WHO Physical Activity Guidelines for Children, 2020 · NASPE Standards',
+    source: 'อ้างอิง: WHO 2020 · Journal of Pediatrics 2021 · AAP Physical Activity Guidelines'
+  },
+  teen: {
+    title: 'หลักฐานทางการแพทย์ — วัยรุ่น (13–22 ปี)',
+    items: [
+      'วัยรุ่นควรออกกำลังกายแบบ Resistance Training 3 วัน/สัปดาห์ เสริมสร้างกล้ามเนื้อได้ 20–40%',
+      'สควอทและวิดพื้นเพิ่ม Bone Mineral Density ในช่วงอายุ 13–20 ปี (ACSM, 2022)',
+      'แพลงก์ 30 วินาที/วัน ลดอาการปวดหลังในวัยรุ่นได้ 45% (Spine Journal, 2020)',
+    ],
+    restReason: 'กล้ามเนื้อวัยรุ่นต้องการพัก 24–48 ชั่วโมงระหว่างการฝึกกลุ่มกล้ามเนื้อเดิม การพักวันอาทิตย์ลดความเสี่ยง Overuse Injury และช่วยให้ร่างกายหลั่ง Growth Hormone ได้เต็มที่ในช่วงนอนหลับ',
+    restRef: 'ACSM Youth Exercise Recommendations, 2022 · Sports Medicine Journal',
+    source: 'อ้างอิง: ACSM 2022 · Spine Journal 2020 · NSCA Youth Training Guidelines'
+  },
+  adult: {
+    title: 'หลักฐานทางการแพทย์ — วัยทำงาน (23–55 ปี)',
+    items: [
+      'นั่งทำงาน >6 ชั่วโมง/วัน เพิ่มความเสี่ยงปวดหลัง 2.5 เท่า — การยืดทุก 1 ชั่วโมงลดอาการได้ 52%',
+      'ออฟฟิศซินโดรม: การหมุนไหล่และยืดคอ 3×/สัปดาห์ ลดอาการปวดได้ 60% ใน 4 สัปดาห์',
+      'Squat สัปดาห์ละ 3 วัน เพิ่มความแข็งแรงขาได้ 30% และลดอาการปวดเข่าเรื้อรัง',
+    ],
+    restReason: 'กล้ามเนื้อวัยทำงานต้องการพัก 48 ชั่วโมงหลังออกกำลังกายหนัก วันพักช่วยฟื้นฟู Microfiber ที่ฉีกขาดระหว่างออกกำลังกาย ส่งผลให้กล้ามเนื้อแข็งแรงขึ้น 20–30% เมื่อเทียบกับการฝึกทุกวัน',
+    restRef: 'WHO Global Action Plan on PA, 2018 · Occupational Medicine Journal 2021',
+    source: 'อ้างอิง: WHO 2018 · Occupational Medicine 2021 · ACSM Guidelines for Adults'
+  },
+  senior: {
+    title: 'หลักฐานทางการแพทย์ — วัยสูงอายุ (56 ปีขึ้นไป)',
+    items: [
+      'การฝึกทรงตัว 3×/สัปดาห์ ลดความเสี่ยงล้มในผู้สูงอายุได้ 39% (Cochrane Review, 2019)',
+      'Sit-to-Stand 5 ครั้ง/วัน รักษาความแข็งแรงขาและลดการสูญเสียกล้ามเนื้อ (Sarcopenia)',
+      'ออกกำลังกายช้าๆ สม่ำเสมอลดอัตราการเข้า รพ. จากการหกล้มได้ 25% ต่อปี',
+    ],
+    restReason: 'ผู้สูงอายุต้องการพัก 3 วัน/สัปดาห์ เนื่องจากกระบวนการซ่อมแซมกล้ามเนื้อช้าลง 30–40% หลังอายุ 60 ปี การพักเพียงพอป้องกัน Overtraining ที่เพิ่มความเสี่ยงบาดเจ็บ และช่วยให้ระบบข้อต่อฟื้นตัว',
+    restRef: 'Cochrane Review 2019 · WHO Active Ageing Guidelines · ACSM Senior Exercise',
+    source: 'อ้างอิง: Cochrane Review 2019 · WHO Active Ageing · ACSM Senior Fitness Guidelines 2022'
+  }
+};
+
+// ===== POSE SVG LIBRARY =====
+const POSE_SVG = {
+  // Standing figure in squat position
+  squat: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="72" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="42" x2="48" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="42" x2="92" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="72" x2="52" y2="108" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="72" x2="88" y2="108" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="52" y1="108" x2="44" y2="140" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="88" y1="108" x2="96" y2="140" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="155" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">เข่างอ 90°</text>
+    <path d="M52 108 Q48 124 44 140" stroke="#FFD700" stroke-width="2" fill="none" stroke-dasharray="4,3"/>
+  </svg>`,
+
+  squat_adult: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="70" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="42" x2="50" y2="60" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="42" x2="90" y2="60" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="70" x2="54" y2="106" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="70" x2="86" y2="106" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="54" y1="106" x2="47" y2="138" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="86" y1="106" x2="93" y2="138" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="154" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">เหมือนนั่งเก้าอี้</text>
+  </svg>`,
+
+  // Standing straight figure
+  arm_raise: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="86" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="30" y2="60" stroke="#3B7EF6" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="110" y2="60" stroke="#3B7EF6" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="30" y1="60" x2="22" y2="38" stroke="#FFD700" stroke-width="3" stroke-linecap="round" stroke-dasharray="0"/>
+    <line x1="110" y1="60" x2="118" y2="38" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="58" y2="126" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="82" y2="126" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="58" y1="126" x2="54" y2="150" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="82" y1="126" x2="86" y2="150" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="158" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">ยกระดับไหล่</text>
+  </svg>`,
+
+  neck_stretch: `<svg viewBox="0 0 140 160">
+    <circle cx="82" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="75" y1="29" x2="66" y2="42" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="66" y1="42" x2="66" y2="86" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="66" y1="56" x2="44" y2="68" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="66" y1="56" x2="88" y2="68" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="66" y1="86" x2="54" y2="122" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="66" y1="86" x2="78" y2="122" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="54" y1="122" x2="50" y2="150" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="78" y1="122" x2="82" y2="150" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <path d="M75 29 Q90 20 82 18" stroke="#FFD700" stroke-width="2" fill="none" stroke-dasharray="3,2"/>
+    <text x="70" y="158" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">เอียงคอช้าๆ</text>
+  </svg>`,
+
+  shoulder_roll: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="86" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="42" y2="62" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="98" y2="62" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="42" y1="62" x2="36" y2="84" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="98" y1="62" x2="104" y2="84" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="42" cy="55" rx="10" ry="8" fill="none" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,2"/>
+    <ellipse cx="98" cy="55" rx="10" ry="8" fill="none" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,2"/>
+    <text x="70" y="104" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Sarabun">← หมุน →</text>
+    <line x1="70" y1="86" x2="58" y2="126" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="82" y2="126" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="58" y1="126" x2="54" y2="148" stroke="#00C896" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="82" y1="126" x2="86" y2="148" stroke="#00C896" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>`,
+
+  back_stretch: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="22" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="34" x2="62" y2="70" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="66" y1="50" x2="30" y2="42" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <line x1="66" y1="50" x2="102" y2="42" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <line x1="62" y1="70" x2="50" y2="106" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="62" y1="70" x2="76" y2="106" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="50" y1="106" x2="44" y2="138" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="76" y1="106" x2="82" y2="138" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="154" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Sarabun">ยกแขนเหนือหัว</text>
+  </svg>`,
+
+  pushup: `<svg viewBox="0 0 140 160">
+    <circle cx="28" cy="50" r="11" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="28" y1="61" x2="55" y2="80" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="55" y1="80" x2="110" y2="82" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="38" y1="68" x2="28" y2="95" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="28" y1="95" x2="22" y2="108" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="80" x2="96" y2="108" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="110" y1="82" x2="118" y2="108" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="125" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">ลำตัวตรง ข้อศอก 90°</text>
+  </svg>`,
+
+  lunge: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="68" y2="72" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="68" y1="45" x2="46" y2="60" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="68" y1="45" x2="92" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="68" y1="72" x2="44" y2="108" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="68" y1="72" x2="96" y2="100" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="44" y1="108" x2="28" y2="140" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="96" y1="100" x2="106" y2="132" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="106" y1="132" x2="118" y2="140" stroke="#00C896" stroke-width="2.5" stroke-linecap="round"/>
+    <text x="70" y="156" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">เข่าหลังเกือบถึงพื้น</text>
+  </svg>`,
+
+  plank: `<svg viewBox="0 0 140 160">
+    <circle cx="22" cy="66" r="11" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="22" y1="77" x2="50" y2="88" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="50" y1="88" x2="112" y2="90" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="34" y1="82" x2="28" y2="104" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="28" y1="104" x2="20" y2="116" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="96" y1="89" x2="100" y2="112" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="112" y1="90" x2="118" y2="112" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="20" y1="116" x2="100" y2="116" stroke="#FFD700" stroke-width="2" stroke-dasharray="4,3"/>
+    <text x="70" y="132" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Sarabun">ลำตัวเป็นเส้นตรง</text>
+  </svg>`,
+
+  balance_senior: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="86" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="46" x2="40" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="46" x2="100" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="40" y1="58" x2="28" y2="70" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="100" y1="58" x2="112" y2="70" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="60" y2="126" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="76" y2="100" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="76" y1="100" x2="84" y2="118" stroke="#FFD700" stroke-width="3" stroke-linecap="round" stroke-dasharray="0"/>
+    <line x1="60" y1="126" x2="55" y2="148" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="158" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Sarabun">จับเก้าอี้ไว้</text>
+  </svg>`,
+
+  sit_stand: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="76" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="50" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="90" y2="58" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <rect x="30" y="100" width="80" height="12" rx="4" fill="none" stroke="#555" stroke-width="2"/>
+    <line x1="70" y1="76" x2="56" y2="100" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="76" x2="84" y2="100" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="56" y1="100" x2="52" y2="128" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="84" y1="100" x2="88" y2="128" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="148" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">ลุก-นั่งช้าๆ</text>
+  </svg>`,
+
+  walk_in_place: `<svg viewBox="0 0 140 160">
+    <circle cx="64" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="64" y1="30" x2="62" y2="80" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="62" y1="46" x2="38" y2="62" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="62" y1="46" x2="86" y2="56" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="62" y1="80" x2="44" y2="116" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="62" y1="80" x2="82" y2="104" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="44" y1="116" x2="38" y2="148" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="82" y1="104" x2="84" y2="130" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="154" text-anchor="middle" fill="#00C896" font-size="9" font-family="Sarabun">ยกเข่าสลับช้าๆ</text>
+  </svg>`,
+
+  jump: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="14" r="12" fill="none" stroke="#FF9F43" stroke-width="3"/>
+    <line x1="70" y1="26" x2="70" y2="72" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="38" x2="28" y2="28" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="38" x2="112" y2="28" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="72" x2="50" y2="110" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="72" x2="90" y2="110" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="50" y1="110" x2="40" y2="140" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="110" x2="100" y2="140" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="156" text-anchor="middle" fill="#FF9F43" font-size="9" font-family="Sarabun">กระโดด+ตบมือ!</text>
+  </svg>`,
+
+  skip: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="16" r="12" fill="none" stroke="#EF4444" stroke-width="3"/>
+    <line x1="70" y1="28" x2="68" y2="76" stroke="#EF4444" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="68" y1="44" x2="48" y2="56" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
+    <line x1="68" y1="44" x2="90" y2="52" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
+    <line x1="68" y1="76" x2="50" y2="112" stroke="#EF4444" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="68" y1="76" x2="80" y2="102" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="50" y1="112" x2="44" y2="144" stroke="#EF4444" stroke-width="3" stroke-linecap="round"/>
+    <line x1="80" y1="102" x2="78" y2="130" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="154" text-anchor="middle" fill="#EF4444" font-size="9" font-family="Sarabun">ยกเข่าสูง!</text>
+  </svg>`,
+
+  balance_child: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="16" r="12" fill="none" stroke="#FF9F43" stroke-width="3"/>
+    <line x1="70" y1="28" x2="70" y2="82" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="36" y2="58" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="104" y2="58" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="82" x2="62" y2="122" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="82" x2="74" y2="100" stroke="#FFD700" stroke-width="3" stroke-linecap="round" stroke-dasharray="0"/>
+    <line x1="74" y1="100" x2="82" y2="116" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+    <line x1="62" y1="122" x2="58" y2="148" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="158" text-anchor="middle" fill="#FF9F43" font-size="9" font-family="Sarabun">ยืนขาเดียว 3 วิ!</text>
+  </svg>`,
+
+  stretch_child: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#FF9F43" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="86" stroke="#FF9F43" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="22" y2="68" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="90" y2="62" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="90" y1="62" x2="100" y2="74" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="58" y2="124" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="82" y2="124" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="58" y1="124" x2="52" y2="148" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <line x1="82" y1="124" x2="88" y2="148" stroke="#FF9F43" stroke-width="3" stroke-linecap="round"/>
+    <text x="70" y="158" text-anchor="middle" fill="#FFD700" font-size="9" font-family="Sarabun">ยืดให้สุด!</text>
+  </svg>`,
+
+  // Default generic
+  default: `<svg viewBox="0 0 140 160">
+    <circle cx="70" cy="18" r="12" fill="none" stroke="#00C896" stroke-width="3"/>
+    <line x1="70" y1="30" x2="70" y2="86" stroke="#00C896" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="46" y2="60" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="44" x2="94" y2="60" stroke="#3B7EF6" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="56" y2="126" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="70" y1="86" x2="84" y2="126" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="56" y1="126" x2="50" y2="150" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+    <line x1="84" y1="126" x2="90" y2="150" stroke="#00C896" stroke-width="3" stroke-linecap="round"/>
+  </svg>`
+};
+
+// ===== EXERCISE STEP-BY-STEP INSTRUCTIONS =====
+const EXERCISE_STEPS = {
+  squat: {
+    steps: ['ยืนตรง เท้าห่างกันเท่าความกว้างไหล่ นิ้วเท้าชี้ออกเล็กน้อย','หายใจเข้า ค่อยๆ งอเข่าลงราวกับนั่งเก้าอี้','หลังตรง อย่าก้มตัว เข่าไม่เกินปลายนิ้วเท้า','หยุดเมื่อต้นขาขนานพื้น แล้วดันตัวขึ้นพร้อมหายใจออก'],
+    warning: 'ห้ามเข่าบิดเข้าด้านใน และหลังงอโค้ง อาจทำให้บาดเจ็บข้อเข่า',
+    medical: 'สควอทถูกต้องเสริมสร้างกล้ามเนื้อหน้าขา (Quadriceps) ได้ 35% และลดแรงกดบนข้อเข่า · อ้างอิง: ACSM, NSCA'
+  },
+  squat_adult: {
+    steps: ['ยืนตรง เท้าห่างกันเท่าไหล่ หน้าชี้ตรง','ค่อยๆ ย่อตัวลงเหมือนจะนั่งเก้าอี้ หลังตรง','งอเข่าประมาณ 90° พอก็พอ ไม่ต้องลึก','ดันตัวขึ้นช้าๆ เกร็งก้นและต้นขา'],
+    warning: 'หากปวดเข่า ให้ย่อแค่ 45° เท่านั้น',
+    medical: 'สควอทเบาลดอาการออฟฟิศซินโดรมและปวดหลังส่วนล่างจากการนั่งนาน · อ้างอิง: Occupational Medicine 2021'
+  },
+  arm_raise: {
+    steps: ['ยืนตรง เท้าห่างกันเท่าไหล่ หายใจสม่ำเสมอ','ค่อยๆ ยกแขนทั้งสองข้างขึ้นพร้อมกัน','ยกถึงระดับไหล่ ค้างไว้ 2 วินาที','ลดแขนลงช้าๆ อย่าให้กระแทก'],
+    warning: 'ผู้สูงอายุ: ยกช้าๆ ไม่เร็ว เพื่อป้องกันความดันโลหิตผันผวน',
+    medical: 'การยกแขนช้าๆ เพิ่มความแข็งแรงไหล่และลดความเสี่ยงหกล้มในผู้สูงอายุ · อ้างอิง: WHO Active Ageing 2020'
+  },
+  neck_stretch: {
+    steps: ['นั่งหรือยืนหลังตรง ผ่อนคลายไหล่ให้ต่ำลง','เอียงคอซ้ายช้าๆ ให้หูใกล้ไหล่ ค้างไว้ 5 วินาที','กลับมาตั้งตรง แล้วเอียงไปทางขวา','ทำสลับ 4–8 ครั้งต่อข้าง อย่าหมุนคอแบบวงกลม'],
+    warning: 'ห้ามกดหัวด้วยมือ และห้ามเอียงคอกระตุกเร็ว อาจทำให้เส้นประสาทบาดเจ็บ',
+    medical: 'การยืดคอแก้ออฟฟิศซินโดรมได้ 52% ในกลุ่มที่ทำงานกับคอมพิวเตอร์ · อ้างอิง: JOSPT 2019'
+  },
+  shoulder_roll: {
+    steps: ['ยืนหรือนั่งตรง วางแขนด้านข้างลำตัว','ยกไหล่ขึ้นทั้งสองข้างพร้อมกัน','หมุนไหล่ไปข้างหน้าเป็นวงกลม 5 ครั้ง','จากนั้นหมุนย้อนกลับอีก 5 ครั้ง'],
+    warning: 'หากเจ็บไหล่ข้างใดข้างหนึ่ง ให้หยุดและพบแพทย์',
+    medical: 'หมุนไหล่คลายกล้ามเนื้อ Trapezius ที่ตึงจากการนั่งทำงาน ลดอาการปวดต้นคอ-ไหล่ได้ · อ้างอิง: BMJ 2017'
+  },
+  back_stretch: {
+    steps: ['ยืนตรง เท้าห่างกันเท่าไหล่','ยกแขนทั้งสองข้างขึ้นเหนือหัว ประสานนิ้ว','ค่อยๆ โน้มตัวไปข้างหน้า 45° ยืดหลัง','ค้าง 5 วินาที แล้วกลับมาตั้งตรงช้าๆ'],
+    warning: 'หากปวดหลังมาก หยุดทำทันที อย่าบิดตัวขณะก้มตัว',
+    medical: 'การยืดหลัง (Back Extension) ลดอาการปวดหลังเรื้อรังได้ 40% เมื่อทำสม่ำเสมอ · อ้างอิง: Spine Journal 2018'
+  },
+  pushup: {
+    steps: ['วางมือลงพื้นกว้างกว่าไหล่เล็กน้อย ลำตัวตรง','เกร็งแกนกลาง (Core) และก้น ลำตัวต้องตรงตลอด','งอข้อศอกลงช้าๆ จนหน้าอกใกล้พื้น','ดันตัวขึ้นพร้อมหายใจออก ข้อศอกไม่ล็อกแข็ง'],
+    warning: 'ห้ามยกก้นขึ้น หรือให้สะโพกห้อยลง จะทำให้กระดูกสันหลังบาดเจ็บ',
+    medical: 'วิดพื้นถูกต้องเสริมสร้างกล้ามเนื้อหน้าอก ไหล่ และ Core ไปพร้อมกัน · อ้างอิง: NSCA Strength Training'
+  },
+  lunge: {
+    steps: ['ยืนตรง มือเท้าสะโพก หรือห้อยข้างลำตัว','ก้าวขาข้างหนึ่งไปข้างหน้า 1 ก้าวใหญ่','งอเข่าหน้าลงจนต้นขาขนานพื้น เข่าหลังเกือบถึงพื้น','ดันตัวกลับมายืนตรง แล้วสลับขา'],
+    warning: 'เข่าหน้าต้องไม่เกินปลายนิ้วเท้า จะเพิ่มแรงกดข้อเข่ามากเกินไป',
+    medical: 'ก้าวขาเสริมสร้างความแข็งแรงกล้ามเนื้อขาและสะโพก และช่วยทรงตัวดีขึ้น · อ้างอิง: ACSM'
+  },
+  plank: {
+    steps: ['วางข้อศอกลงพื้น มือประสานหรือกำหมัด','ปลายเท้าหยุด ยกลำตัวขึ้นให้ตรงเป็นเส้นตรง','เกร็งท้อง ก้น และต้นขา ไม่ยกสะโพกสูง','หายใจสม่ำเสมอ ค้างนานที่สุดเท่าที่ทำได้'],
+    warning: 'หากหลังแอ่นหรือเจ็บเอว ให้หยุดพักทันที',
+    medical: 'แพลงก์เสริม Core Stability ลดอาการปวดหลังส่วนล่างได้ 45% · อ้างอิง: Spine Journal 2020'
+  },
+  balance_senior: {
+    steps: ['ยืนใกล้กำแพงหรือเก้าอี้ มือจับไว้เผื่อหากสูญเสียการทรงตัว','ค่อยๆ ยกขาข้างหนึ่งขึ้น โน้มเข่าขึ้นเล็กน้อย','ค้างไว้ 5 วินาที ตามองตรงไปข้างหน้า','ลดขาลงช้าๆ แล้วสลับข้าง'],
+    warning: 'ต้องมีเก้าอี้หรือกำแพงอยู่ใกล้มือเสมอ ห้ามทำคนเดียวในพื้นที่ลื่น',
+    medical: 'การฝึกทรงตัวลดความเสี่ยงล้มในผู้สูงอายุได้ 39% · อ้างอิง: Cochrane Review 2019'
+  },
+  sit_stand: {
+    steps: ['นั่งบนเก้าอี้ที่มั่นคง ฝ่าเท้าวางราบบนพื้น','วางมือบนหัวเข่าหรือที่พักแขน หายใจเข้า','ค่อยๆ ลุกขึ้นยืนช้าๆ ใช้ขาเป็นหลัก ไม่ใช้แขนดัน','ยืนตรงสักครู่ แล้วนั่งลงช้าๆ'],
+    warning: 'หากเวียนหัวเมื่อลุกขึ้น หยุดพักก่อน และแจ้งแพทย์',
+    medical: 'Sit-to-Stand รักษาความแข็งแรงกล้ามเนื้อขา ลด Sarcopenia ในผู้สูงอายุ · อ้างอิง: ACSM Senior Fitness'
+  },
+  walk_in_place: {
+    steps: ['ยืนตรง จับพนักพิงเก้าอี้หรือโต๊ะไว้เผื่อ','ยกเข่าซ้ายขึ้นเบาๆ แล้ววางลง','สลับยกเข่าขวา ทำเหมือนเดินช้าๆ','ทำต่อเนื่อง 1 นาที ความเร็วสบายๆ'],
+    warning: 'อย่าเดินเร็วจนหายใจไม่ทัน ควรพูดได้ระหว่างออกกำลังกาย',
+    medical: 'เดินอยู่กับที่เพิ่มสมรรถภาพหัวใจและปอดอย่างปลอดภัยในผู้สูงอายุ · อ้างอิง: WHO Active Ageing'
+  },
+  jump: {
+    steps: ['ยืนตรง เท้าชิด แขนลงข้างลำตัว','กระโดดขึ้นพร้อมกางขาออก และตบมือเหนือหัว','ลงพร้อมกัน เข่างอเล็กน้อยเพื่อรับแรงกระแทก','ทำซ้ำต่อเนื่องจังหวะสนุก'],
+    warning: 'ลงเท้าด้วยปลายเท้าก่อน แล้วค่อยส้นเท้า เพื่อลดแรงกระแทก',
+    medical: 'กระโดดตบมือพัฒนาความคล่องตัวและสร้างความหนาแน่นกระดูกในเด็ก · อ้างอิง: AAP 2020'
+  },
+  skip: {
+    steps: ['ยืนตรง เท้าห่างกันเล็กน้อย','ยกเข่าซ้ายขึ้นสูงเหนือเอว','สลับยกเข่าขวา ทำให้เร็วขึ้นเรื่อยๆ','แกว่งแขนสลับกับขา เหมือนวิ่งเร็ว'],
+    warning: 'หากหัวใจเต้นเร็วมาก ให้ลดความเร็วลง พักหายใจให้ทัน',
+    medical: 'วิ่งอยู่กับที่เพิ่มอัตราการเต้นหัวใจ พัฒนาสมรรถภาพหัวใจในเด็กได้อย่างปลอดภัย · อ้างอิง: WHO 2020'
+  },
+  balance_child: {
+    steps: ['ยืนตรง กางแขนทั้งสองออกเพื่อช่วยทรงตัว','ค่อยๆ ยกขาข้างหนึ่งขึ้น','ค้างไว้ 3 วินาที ตามองตรง ลองอย่าให้ตัวโยก','ลงขาแล้วสลับข้าง'],
+    warning: 'ทำบนพื้นที่ปลอดโปร่ง ไม่มีของแข็งอยู่ใกล้ๆ',
+    medical: 'ฝึกทรงตัวพัฒนา Proprioception และลดการบาดเจ็บในเด็กนักกีฬา · อ้างอิง: Pediatrics 2021'
+  },
+  stretch_child: {
+    steps: ['ยืนตรง มือทั้งสองข้างอยู่ข้างลำตัว','ยกแขนซ้ายขึ้นสูงข้างหัว เหยียดให้สุด','ลดลง แล้วยกแขนขวา ทำสลับกัน','จากนั้นก้าวขาหนึ่งข้าง ยืดต้นขา'],
+    warning: 'ยืดแค่รู้สึกตึง ไม่ต้องจนเจ็บ',
+    medical: 'การยืดกล้ามเนื้อในเด็กเพิ่มความยืดหยุ่นและช่วงการเคลื่อนไหวข้อต่อ · อ้างอิง: ACSM Youth'
+  }
+};
+const PROGRAMS = {
+  child: {
+    title: '👦 วัยเด็ก',
+    sub: 'เกมออกกำลังกาย เน้นความสนุก และความคล่องตัว',
+    mode: '👦 วัยเด็ก',
+    color: '#FF9F43',
+    exercises: [
+      { id:'jump', name:'กระโดดตบมือ', icon:'🙌', desc:'20 ครั้ง • ความคล่องตัว', diff:'easy', emoji:'🙌', target:20,
+        guide:'กระโดดขึ้น พร้อมตบมือเหนือหัว แล้วลงพร้อมกาง-หุบแขน',
+        angles:['elbow','shoulder'], minReps:10 },
+      { id:'skip', name:'วิ่งอยู่กับที่', icon:'🏃', desc:'30 วินาที • หัวใจ', diff:'easy', emoji:'🏃', target:30,
+        guide:'วิ่งอยู่กับที่ ยกเข่าสูง ผลัดสลับขา',
+        angles:['knee'], minReps:15 },
+      { id:'balance_child', name:'ยืนขาเดียว', icon:'🦩', desc:'15 ครั้ง • ทรงตัว', diff:'med', emoji:'🦩', target:15,
+        guide:'ยืนขาเดียว กางแขน ทรงตัวให้นิ่ง 3 วินาที',
+        angles:['knee','hip'], minReps:8 },
+      { id:'stretch_child', name:'ยืดแขนยืดขา', icon:'🌟', desc:'10 ครั้ง • ยืดหยุ่น', diff:'easy', emoji:'🌟', target:10,
+        guide:'ยืดแขนสลับซ้าย-ขวา ให้สุด แล้วสลับยืดขา',
+        angles:['elbow'], minReps:5 },
+    ]
+  },
+  teen: {
+    title: '🧑 วัยรุ่น',
+    sub: 'เพิ่มความแข็งแรง ความเร็ว แข่งคะแนน Level Up',
+    mode: '🧑 วัยรุ่น',
+    color: '#A855F7',
+    exercises: [
+      { id:'squat', name:'สควอท', icon:'🏋️', desc:'15 ครั้ง • ขาและก้น', diff:'med', emoji:'🏋️', target:15,
+        guide:'ยืนตรง เท้าห่างกันประมาณไหล่ งอเข่าลงช้าๆ หลังตรง เข่าไม่เกินนิ้วเท้า',
+        angles:['knee','hip'], minReps:10 },
+      { id:'pushup', name:'วิดพื้น', icon:'💪', desc:'10 ครั้ง • หน้าอก-แขน', diff:'hard', emoji:'💪', target:10,
+        guide:'ฝ่ามือวางพื้นกว้างกว่าไหล่ ลำตัวตรง งอข้อศอกลงช้าๆ',
+        angles:['elbow','shoulder'], minReps:5 },
+      { id:'lunge', name:'ก้าวขา', icon:'🚶', desc:'12 ครั้ง • ขาสลับ', diff:'med', emoji:'🚶', target:12,
+        guide:'ก้าวขาไปข้างหน้า 1 ก้าว งอเข่าหลังลงใกล้พื้น กลับมาตั้งตรง',
+        angles:['knee','hip'], minReps:8 },
+      { id:'plank', name:'แพลงก์', icon:'🧘', desc:'30 วิ • แกนกลาง', diff:'hard', emoji:'🧘', target:30,
+        guide:'วางข้อศอกลงพื้น ลำตัวตรงเป็นเส้นตรง เกร็งท้อง หายใจสม่ำเสมอ',
+        angles:['elbow','shoulder'], minReps:1 },
+    ]
+  },
+  adult: {
+    title: '👨‍💼 วัยทำงาน',
+    sub: 'แก้ออฟฟิศซินโดรม บรรเทาปวดหลัง ยืดไหล่-คอ',
+    mode: '👨‍💼 วัยทำงาน',
+    color: '#0B4FBD',
+    exercises: [
+      { id:'neck_stretch', name:'ยืดคอ', icon:'🏥', desc:'8 ครั้ง • บรรเทาปวดคอ', diff:'easy', emoji:'🧘', target:8,
+        guide:'เอียงคอซ้าย ค้างไว้ 5 วินาที แล้วสลับขวา ทำช้าๆ ไม่ฝืน',
+        angles:['shoulder'], minReps:4 },
+      { id:'shoulder_roll', name:'หมุนไหล่', icon:'💆', desc:'10 ครั้ง • คลายไหล่', diff:'easy', emoji:'💆', target:10,
+        guide:'หมุนไหล่ทั้งสองข้างพร้อมกัน วนไปข้างหน้า 5 ครั้ง แล้วย้อนกลับ',
+        angles:['shoulder','elbow'], minReps:5 },
+      { id:'back_stretch', name:'ยืดหลัง', icon:'🪑', desc:'6 ครั้ง • ปวดหลัง', diff:'easy', emoji:'🧍', target:6,
+        guide:'ยืนตรง ยกแขนขึ้นเหนือหัว โน้มตัวไปข้างหน้าช้าๆ ยืดหลัง',
+        angles:['shoulder','hip'], minReps:3 },
+      { id:'squat_adult', name:'สควอทเบา', icon:'🏋️', desc:'10 ครั้ง • ขาและสะโพก', diff:'med', emoji:'🏋️', target:10,
+        guide:'ยืนตรง เท้าห่างกันประมาณไหล่ ค่อยๆ นั่งลงเหมือนนั่งเก้าอี้',
+        angles:['knee','hip'], minReps:6 },
+    ]
+  },
+  senior: {
+    title: '👴 วัยสูงอายุ',
+    sub: 'เคลื่อนไหวช้าปลอดภัย ป้องกันการล้ม ฝึกทรงตัว',
+    mode: '👴 วัยสูงอายุ',
+    color: '#10B981',
+    exercises: [
+      { id:'balance_senior', name:'ยืนทรงตัว', icon:'🦯', desc:'5 ครั้ง • ป้องกันล้ม', diff:'easy', emoji:'🧍', target:5,
+        guide:'ยืนใกล้กำแพงหรือเก้าอี้เผื่อจับ ยืนขาเดียวช้าๆ ค้างไว้ 5 วินาที',
+        angles:['knee','hip'], minReps:3, senior:true },
+      { id:'arm_raise', name:'ยกแขนช้าๆ', icon:'🙌', desc:'8 ครั้ง • ไหล่-แขน', diff:'easy', emoji:'🙌', target:8,
+        guide:'ยกแขนสองข้างขึ้นช้าๆ จนระดับไหล่ แล้วลงช้าๆ หายใจสม่ำเสมอ',
+        angles:['shoulder','elbow'], minReps:5, senior:true },
+      { id:'sit_stand', name:'นั่ง-ลุก', icon:'🪑', desc:'5 ครั้ง • ขาแข็งแรง', diff:'med', emoji:'🪑', target:5,
+        guide:'นั่งบนเก้าอี้ มือวางหัวเข่า ลุกขึ้นช้าๆ แล้วนั่งลงช้าๆ',
+        angles:['knee','hip'], minReps:3, senior:true },
+      { id:'walk_in_place', name:'เดินอยู่กับที่', icon:'🚶', desc:'1 นาที • หัวใจ', diff:'easy', emoji:'🚶', target:30,
+        guide:'เดินอยู่กับที่ช้าๆ ยกเข่าเบาๆ จับพนักพิงไว้ก่อนถ้าต้องการ',
+        angles:['knee'], minReps:15, senior:true },
+    ]
+  }
+};
+
+let currentAge = 'adult';
+let currentExercise = null;
+let sessionData = { reps: 0, correctReps: 0, scores: [], startTime: null, paused: false };
+let sessionHistory = JSON.parse(localStorage.getItem('physio_history') || '[]');
+let pose = null, camera = null, videoStream = null;
+let exerciseActive = false;
+let lastRepState = 'up';
+let repCooldown = false;
+let feedbackTimeout = null;
+let stationaryTimer = 0;
+let lastMovementTime = Date.now();
+let VOICE_ENABLED = true;
+let exerciseTimerInterval = null;
+let exerciseElapsedSecs = 0;
+
+// ============================================================
+// SCREEN NAVIGATION
+// ============================================================
+function showScreen(id, navIdx) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  if (id === 'dashboard') buildDashboard();
+  updateHomeStats();
+}
+
+// ============================================================
+// AGE SELECTION
+// ============================================================
+function selectAge(age) {
+  currentAge = age;
+  const prog = PROGRAMS[age];
+  document.getElementById('prog-main-title').textContent = prog.title;
+  document.getElementById('prog-sub').textContent = prog.sub;
+  document.getElementById('program-title-nav').textContent = prog.title;
+  buildExerciseList(age);
+  buildEvidenceBanner(age);
+  buildRestScience(age);
+  // reset to list tab and init calendar
+  switchProgTab('list');
+  calCurrentDate = new Date();
+  calSelectedDay = null;
+  buildCalendar();
+  showScreen('program', 1);
+}
+
+function buildEvidenceBanner(age) {
+  const ev = MEDICAL_EVIDENCE[age];
+  if (!ev) return;
+  document.getElementById('evidence-title').textContent = ev.title;
+  const itemsEl = document.getElementById('evidence-items');
+  itemsEl.innerHTML = ev.items.map(item => `
+    <div class="evidence-item">
+      <div class="evidence-dot"></div>
+      <div class="evidence-text">${item}</div>
+    </div>`).join('');
+  document.getElementById('evidence-source').textContent = ev.source;
+}
+
+function buildRestScience(age) {
+  const ev = MEDICAL_EVIDENCE[age];
+  if (!ev) return;
+  const panel = document.getElementById('rest-science-panel');
+  if (panel) {
+    document.getElementById('rest-science-text').textContent = ev.restReason;
+    document.getElementById('rest-science-ref').textContent = ev.restRef;
+  }
+}
+
+function buildExerciseList(age) {
+  const today = new Date();
+  const plan = getDayPlan(today, age);
+  const list = document.getElementById('exercise-list');
+  const restView = document.getElementById('today-rest-view');
+  const banner = document.getElementById('today-banner');
+  const dKey = dateKey(today);
+  const done = sessionHistory.some(s => s.dateKey === dKey);
+
+  const thDays = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const dateStr = `วัน${thDays[today.getDay()]}ที่ ${today.getDate()} ${thMonths[today.getMonth()]} ${today.getFullYear()+543}`;
+
+  if (plan.rest) {
+    list.innerHTML = '';
+    list.style.display = 'none';
+    restView.style.display = 'flex';
+    banner.className = 'today-banner show is-today';
+    banner.innerHTML = `🌿 วันพักผ่อน<div class="banner-date">${dateStr}</div>`;
+    // Find next workout day
+    let nextDay = new Date(today);
+    for (let i = 1; i <= 7; i++) {
+      nextDay.setDate(nextDay.getDate() + 1);
+      const np = getDayPlan(nextDay, age);
+      if (!np.rest) {
+        const nd = thDays[nextDay.getDay()];
+        document.getElementById('rest-next-label').textContent = `📅 วันฝึกถัดไป: วัน${nd}ที่ ${nextDay.getDate()} ${thMonths[nextDay.getMonth()]}`;
+        break;
+      }
+    }
+    return;
+  }
+
+  restView.style.display = 'none';
+  list.style.display = 'flex';
+  list.innerHTML = '';
+
+  // Banner
+  if (done) {
+    banner.className = 'today-banner show is-done';
+    banner.innerHTML = `✅ ทำครบแล้ววันนี้!<div class="banner-date">${dateStr}</div>`;
+  } else {
+    banner.className = 'today-banner show is-today';
+    banner.innerHTML = `⭐ โปรแกรมวันนี้ — ${plan.exercises.length} ท่า<div class="banner-date">${dateStr}</div>`;
+  }
+
+  const colors = { child:'#FFF3E0', teen:'#F5F3FF', adult:'#EFF6FF', senior:'#ECFDF5' };
+
+  plan.exercises.forEach(ex => {
+    // Merge with full exercise data from PROGRAMS if exists
+    const fullEx = (PROGRAMS[age].exercises || []).find(e => e.id === ex.id) || {
+      ...ex, target: ex.reps, guide: `ทำ ${ex.reps} ${ex.unit||'ครั้ง'} ให้ถูกต้อง`, angles:['knee']
+    };
+    const calEx = { ...fullEx, target: ex.reps, name: ex.name, emoji: ex.emoji };
+    const diffClass = ex.diff==='easy'?'diff-easy':ex.diff==='med'?'diff-med':'diff-hard';
+    const diffText = ex.diff==='easy'?'ง่าย':ex.diff==='med'?'ปานกลาง':'ยาก';
+    const div = document.createElement('div');
+    div.className = 'exercise-card';
+    div.innerHTML = `
+      <div class="ex-icon" style="background:${colors[age]}">${ex.emoji}</div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-detail">${ex.reps} ${ex.unit||'ครั้ง'} · ${ex.type ? getThaiType(ex.type) : ''}</div>
+        <span class="ex-badge ${diffClass}">${diffText}</span>
+      </div>
+      <div class="ex-arrow">›</div>`;
+    div.onclick = () => openExercise(calEx);
+    list.appendChild(div);
+  });
+}
+
+function getThaiType(type) {
+  const map = { jump:'กระโดด', run:'วิ่ง', balance:'ทรงตัว', squat:'สควอท', stretch:'ยืด', push:'ดัน', lunge:'ก้าว', plank:'แพลงก์', neck:'คอ', shoulder:'ไหล่', back:'หลัง', wrist:'ข้อมือ', hip:'สะโพก', arm:'แขน', walk:'เดิน', ankle:'ข้อเท้า' };
+  return map[type] || type;
+}
+
+// ============================================================
+// TAB SWITCHER
+// ============================================================
+function switchProgTab(tab) {
+  const listView = document.getElementById('exercise-list-view');
+  const calView  = document.getElementById('calendar-view');
+  const tabList  = document.getElementById('tab-list');
+  const tabCal   = document.getElementById('tab-cal');
+  if (tab === 'list') {
+    listView.style.display = 'block';
+    calView.classList.remove('active');
+    calView.style.display = 'none';
+    tabList.classList.add('active');
+    tabCal.classList.remove('active');
+    // Rebuild today list in case history updated
+    buildExerciseList(currentAge);
+  } else {
+    listView.style.display = 'none';
+    calView.style.display = 'block';
+    calView.classList.add('active');
+    tabList.classList.remove('active');
+    tabCal.classList.add('active');
+    buildCalendar();
+  }
+}
+
+// ============================================================
+// CALENDAR DATA ENGINE
+// ============================================================
+let calCurrentDate = new Date();
+let calSelectedDay = null;
+
+// Exercise pool per age group — varied daily
+const CAL_POOL = {
+  child: [
+    { id:'jump',          name:'กระโดดตบมือ',  emoji:'🙌', base:15, diffPerWeek:3, diff:'easy', type:'jump' },
+    { id:'skip',          name:'วิ่งอยู่กับที่', emoji:'🏃', base:20, diffPerWeek:4, diff:'easy', type:'run'  },
+    { id:'balance_child', name:'ยืนขาเดียว',    emoji:'🦩', base:10, diffPerWeek:2, diff:'med',  type:'balance' },
+    { id:'squat_child',   name:'นั่งยองๆ',      emoji:'🐸', base:10, diffPerWeek:2, diff:'easy', type:'squat' },
+    { id:'stretch_child', name:'ยืดแขนยืดขา',  emoji:'🌟', base:8,  diffPerWeek:2, diff:'easy', type:'stretch' },
+  ],
+  teen: [
+    { id:'squat',   name:'สควอท',    emoji:'🏋️', base:12, diffPerWeek:2, diff:'med',  type:'squat' },
+    { id:'pushup',  name:'วิดพื้น',  emoji:'💪', base:8,  diffPerWeek:2, diff:'hard', type:'push' },
+    { id:'lunge',   name:'ก้าวขา',   emoji:'🚶', base:10, diffPerWeek:2, diff:'med',  type:'lunge' },
+    { id:'plank',   name:'แพลงก์',   emoji:'🧘', base:1,  diffPerWeek:0, diff:'hard', type:'plank', unit:'เซ็ต' },
+    { id:'jump_teen', name:'กระโดด Squat', emoji:'🔥', base:10, diffPerWeek:3, diff:'hard', type:'jump' },
+  ],
+  adult: [
+    { id:'neck_stretch',  name:'ยืดคอ',     emoji:'🏥', base:6,  diffPerWeek:1, diff:'easy', type:'neck'    },
+    { id:'shoulder_roll', name:'หมุนไหล่',  emoji:'💆', base:8,  diffPerWeek:1, diff:'easy', type:'shoulder'},
+    { id:'back_stretch',  name:'ยืดหลัง',   emoji:'🪑', base:5,  diffPerWeek:1, diff:'easy', type:'back'    },
+    { id:'squat_adult',   name:'สควอทเบา',  emoji:'🏋️', base:8,  diffPerWeek:2, diff:'med',  type:'squat'   },
+    { id:'wrist_roll',    name:'หมุนข้อมือ', emoji:'🖐️', base:10, diffPerWeek:1, diff:'easy', type:'wrist'   },
+    { id:'hip_rotate',    name:'หมุนสะโพก', emoji:'🌀', base:8,  diffPerWeek:1, diff:'easy', type:'hip'     },
+  ],
+  senior: [
+    { id:'balance_senior', name:'ยืนทรงตัว',     emoji:'🦯', base:4, diffPerWeek:1, diff:'easy', type:'balance' },
+    { id:'arm_raise',      name:'ยกแขนช้าๆ',     emoji:'🙌', base:6, diffPerWeek:1, diff:'easy', type:'arm'     },
+    { id:'sit_stand',      name:'นั่ง-ลุก',       emoji:'🪑', base:4, diffPerWeek:1, diff:'med',  type:'squat'   },
+    { id:'walk_in_place',  name:'เดินอยู่กับที่', emoji:'🚶', base:20,diffPerWeek:2, diff:'easy', type:'walk'    },
+    { id:'ankle_rotate',   name:'หมุนข้อเท้า',   emoji:'🦶', base:8, diffPerWeek:1, diff:'easy', type:'ankle'   },
+  ],
+};
+
+// Color per exercise type
+const TYPE_COLORS = {
+  jump:'#FF9F43', run:'#EF4444', balance:'#A855F7', squat:'#0B4FBD',
+  stretch:'#10B981', push:'#6366F1', lunge:'#F59E0B', plank:'#EC4899',
+  neck:'#14B8A6', shoulder:'#8B5CF6', back:'#F97316', wrist:'#06B6D4',
+  hip:'#84CC16', arm:'#0EA5E9', walk:'#22C55E', ankle:'#E879F9',
+};
+
+// Rest day logic per age: seniors rest more, children rest on weekends only
+const REST_PATTERN = {
+  child:  [0, 6],          // Sun+Sat rest
+  teen:   [0],             // Sun rest
+  adult:  [0, 6],          // Sun+Sat rest
+  senior: [0, 3, 6],       // Sun+Wed+Sat rest
+};
+
+/**
+ * Generate deterministic daily plan for a given date+age.
+ * Uses date seed so same day always gives same plan.
+ */
+function getDayPlan(date, age) {
+  const dow = date.getDay(); // 0=Sun
+  const restDays = REST_PATTERN[age];
+  if (restDays.includes(dow)) return { rest: true, exercises: [] };
+
+  const pool = CAL_POOL[age];
+  const seed = date.getFullYear() * 10000 + (date.getMonth()+1) * 100 + date.getDate();
+  // week number in year (approx)
+  const startOfYear = new Date(date.getFullYear(), 0, 1);
+  const weekNo = Math.floor((date - startOfYear) / (7 * 86400000));
+
+  // pick 2-3 exercises based on seed
+  const shuffled = seededShuffle(pool, seed);
+  const count = age === 'senior' ? 2 : age === 'child' ? 2 : 3;
+  const chosen = shuffled.slice(0, count);
+
+  return {
+    rest: false,
+    exercises: chosen.map(ex => {
+      const reps = ex.base + Math.floor(weekNo * ex.diffPerWeek * 0.15);
+      return { ...ex, reps: Math.min(reps, ex.base * 2), unit: ex.unit || 'ครั้ง' };
+    }),
+  };
+}
+
+function seededShuffle(arr, seed) {
+  const a = [...arr];
+  let s = seed;
+  for (let i = a.length - 1; i > 0; i--) {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    const j = Math.abs(s) % (i + 1);
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ============================================================
+// BUILD CALENDAR
+// ============================================================
+function buildCalendar() {
+  const now = new Date();
+  const y = calCurrentDate.getFullYear();
+  const m = calCurrentDate.getMonth();
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  // Month label
+  const thMonths = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  document.getElementById('cal-month-label').textContent = `${thMonths[m]} ${y + 543}`;
+
+  // Summary counts
+  let activeDays=0, restDays=0, doneDays=0;
+  for (let d=1; d<=daysInMonth; d++) {
+    const date = new Date(y, m, d);
+    const plan = getDayPlan(date, currentAge);
+    if (plan.rest) restDays++;
+    else {
+      activeDays++;
+      if (sessionHistory.some(s => s.dateKey === dateKey(date))) doneDays++;
+    }
+  }
+  document.getElementById('cal-month-summary').innerHTML = `
+    <div class="ms-item"><div class="ms-num">${activeDays}</div><div class="ms-label">วันฝึก</div></div>
+    <div class="ms-item"><div class="ms-num">${doneDays}</div><div class="ms-label">ทำแล้ว</div></div>
+    <div class="ms-item"><div class="ms-num">${restDays}</div><div class="ms-label">วันพัก</div></div>
+    <div class="ms-item"><div class="ms-num">${activeDays>0?Math.round(doneDays/activeDays*100):0}%</div><div class="ms-label">ความคืบหน้า</div></div>
+  `;
+
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Empty cells before first day
+  for (let i=0; i<firstDay; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-cell empty';
+    grid.appendChild(empty);
+  }
+
+  for (let d=1; d<=daysInMonth; d++) {
+    const date = new Date(y, m, d);
+    const dow = date.getDay();
+    const isToday = d === now.getDate() && m === now.getMonth() && y === now.getFullYear();
+    const isPast = date < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dKey = dateKey(date);
+    const done = sessionHistory.some(s => s.dateKey === dKey);
+    const plan = getDayPlan(date, currentAge);
+    const isSelected = calSelectedDay && dateKey(calSelectedDay) === dKey;
+
+    const cell = document.createElement('div');
+    let cls = 'cal-cell';
+    if (plan.rest) cls += ' rest-day';
+    if (isToday) cls += ' today';
+    if (isPast && done && !plan.rest) cls += ' past-done';
+    if (isSelected) cls += ' selected';
+    cell.className = cls;
+
+    const dayNumCls = dow===0 ? 'cal-day cal-day-sun' : dow===6 ? 'cal-day cal-day-sat' : 'cal-day';
+    let inner = `<div class="${dayNumCls}">${d}</div>`;
+
+    if (plan.rest) {
+      inner += `<div class="cal-rest-label">พัก</div>`;
+    } else {
+      inner += `<div class="cal-dot-wrap">`;
+      plan.exercises.forEach(ex => {
+        const color = TYPE_COLORS[ex.type] || '#0B4FBD';
+        inner += `<div class="cal-dot" style="background:${color}22;border:1px solid ${color}66" title="${ex.name}"></div>`;
+      });
+      inner += `</div>`;
+      if (done) inner += `<div class="cal-done-check">✅</div>`;
+    }
+
+    cell.innerHTML = inner;
+    cell.onclick = () => selectCalDay(date);
+    grid.appendChild(cell);
+  }
+
+  // Show today's detail by default if in current month
+  if (m === now.getMonth() && y === now.getFullYear()) {
+    selectCalDay(now);
+  } else {
+    document.getElementById('day-detail').style.display = 'none';
+  }
+}
+
+function calChangeMonth(delta) {
+  calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+  calSelectedDay = null;
+  buildCalendar();
+}
+
+function selectCalDay(date) {
+  calSelectedDay = date;
+  // re-render calendar to update selection highlight
+  buildCalendar_noSelect();
+  showDayDetail(date);
+}
+
+function buildCalendar_noSelect() {
+  // just rebuild grid cells without re-triggering showDayDetail
+  const now = new Date();
+  const y = calCurrentDate.getFullYear();
+  const m = calCurrentDate.getMonth();
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const grid = document.getElementById('cal-grid');
+  // update selected class only
+  grid.querySelectorAll('.cal-cell:not(.empty)').forEach((cell, i) => {
+    const d = i - firstDay + 1;
+    if (d < 1 || d > daysInMonth) return;
+    const date = new Date(y, m, d + firstDay - firstDay); // rebuild index
+    // simplest: just toggle selected
+  });
+  // full rebuild is fine performance-wise for a calendar
+  buildCalendarGrid();
+}
+
+function buildCalendarGrid() {
+  const now = new Date();
+  const y = calCurrentDate.getFullYear();
+  const m = calCurrentDate.getMonth();
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  for (let i=0; i<firstDay; i++) {
+    const e = document.createElement('div');
+    e.className = 'cal-cell empty';
+    grid.appendChild(e);
+  }
+  for (let d=1; d<=daysInMonth; d++) {
+    const date = new Date(y, m, d);
+    const dow = date.getDay();
+    const isToday = d===now.getDate() && m===now.getMonth() && y===now.getFullYear();
+    const dKey = dateKey(date);
+    const done = sessionHistory.some(s => s.dateKey === dKey);
+    const plan = getDayPlan(date, currentAge);
+    const isSelected = calSelectedDay && dateKey(calSelectedDay) === dKey;
+    const cell = document.createElement('div');
+    let cls = 'cal-cell';
+    if (plan.rest) cls += ' rest-day';
+    if (isToday) cls += ' today';
+    if (date < new Date(now.getFullYear(), now.getMonth(), now.getDate()) && done && !plan.rest) cls += ' past-done';
+    if (isSelected) cls += ' selected';
+    cell.className = cls;
+    const dayNumCls = dow===0 ? 'cal-day cal-day-sun' : dow===6 ? 'cal-day cal-day-sat' : 'cal-day';
+    let inner = `<div class="${dayNumCls}">${d}</div>`;
+    if (plan.rest) { inner += `<div class="cal-rest-label">พัก</div>`; }
+    else {
+      inner += `<div class="cal-dot-wrap">`;
+      plan.exercises.forEach(ex => {
+        const color = TYPE_COLORS[ex.type] || '#0B4FBD';
+        inner += `<div class="cal-dot" style="background:${color}22;border:1px solid ${color}66"></div>`;
+      });
+      inner += `</div>`;
+      if (done) inner += `<div class="cal-done-check">✅</div>`;
+    }
+    cell.innerHTML = inner;
+    cell.onclick = () => selectCalDay(date);
+    grid.appendChild(cell);
+  }
+}
+
+// ============================================================
+// DAY DETAIL
+// ============================================================
+function showDayDetail(date) {
+  const panel = document.getElementById('day-detail');
+  const plan = getDayPlan(date, currentAge);
+  const now = new Date();
+  const isToday = dateKey(date) === dateKey(now);
+  const isFuture = date > now;
+  const dKey = dateKey(date);
+  const done = sessionHistory.some(s => s.dateKey === dKey);
+
+  const thDays = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const thMonthsShort = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const dateStr = `วัน${thDays[date.getDay()]}ที่ ${date.getDate()} ${thMonthsShort[date.getMonth()]} ${date.getFullYear()+543}`;
+
+  let badgeHtml = '';
+  if (plan.rest) badgeHtml = `<span class="day-detail-badge badge-rest">🌿 วันพัก</span>`;
+  else if (done) badgeHtml = `<span class="day-detail-badge badge-done">✅ ทำแล้ว</span>`;
+  else if (isToday) badgeHtml = `<span class="day-detail-badge badge-active">⭐ วันนี้</span>`;
+  else if (isFuture) badgeHtml = `<span class="day-detail-badge badge-active">📅 กำหนดการ</span>`;
+  else badgeHtml = `<span class="day-detail-badge" style="background:#FEF2F2;color:#991B1B">⏰ พลาด</span>`;
+
+  let bodyHtml = '';
+  if (plan.rest) {
+    bodyHtml = `<div class="day-rest-msg">
+      <div class="day-rest-emoji">🌿</div>
+      <div class="day-rest-text">วันนี้เป็นวันพักผ่อน<br>ให้กล้ามเนื้อได้ฟื้นตัว<br><small style="color:var(--text3)">พักให้เต็มที่ พรุ่งนี้ฝึกได้อีก</small></div>
+    </div>`;
+  } else {
+    const colors = { child:'#FFF3E0', teen:'#F5F3FF', adult:'#EFF6FF', senior:'#ECFDF5' };
+    const bg = colors[currentAge] || '#EFF6FF';
+    bodyHtml = `<div class="day-exercises">`;
+    plan.exercises.forEach(ex => {
+      const color = TYPE_COLORS[ex.type] || '#0B4FBD';
+      const diffClass = ex.diff==='easy'?'diff-easy':ex.diff==='med'?'diff-med':'diff-hard';
+      const diffText = ex.diff==='easy'?'ง่าย':ex.diff==='med'?'ปานกลาง':'ยาก';
+      // find full exercise from PROGRAMS if available, else use pool entry
+      const fullEx = (PROGRAMS[currentAge].exercises || []).find(e => e.id === ex.id) || {
+        ...ex, target: ex.reps, guide: `ทำ ${ex.reps} ${ex.unit||'ครั้ง'} ให้ถูกต้อง`, angles:['knee']
+      };
+      // override target with calendar reps
+      const calEx = { ...fullEx, target: ex.reps, name: ex.name, emoji: ex.emoji };
+      bodyHtml += `<div class="day-ex-row" onclick='openExerciseFromCal(${JSON.stringify(calEx)})'>
+        <div class="day-ex-emoji">${ex.emoji}</div>
+        <div class="day-ex-info">
+          <div class="day-ex-name">${ex.name}</div>
+          <div class="day-ex-reps">${ex.reps} ${ex.unit||'ครั้ง'} · <span class="day-ex-diff ${diffClass}">${diffText}</span></div>
+        </div>
+        <div class="day-ex-arrow">›</div>
+      </div>`;
+    });
+    bodyHtml += `</div>`;
+    if (!isFuture && !done) {
+      bodyHtml += `<div style="margin-top:12px;padding:10px 12px;background:#FEF3C7;border-radius:10px;font-size:12px;color:#92400E">
+        💡 กดที่ท่าเพื่อเริ่มฝึกทันที AI จะตรวจสอบท่าทางให้อัตโนมัติ
+      </div>`;
+    }
+  }
+
+  panel.innerHTML = `
+    <div class="day-detail-header">
+      <div class="day-detail-title">${dateStr}</div>
+      ${badgeHtml}
+    </div>
+    ${bodyHtml}
+  `;
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function openExerciseFromCal(ex) {
+  // tag with today's date key for history tracking
+  calSelectedDateKey = dateKey(calSelectedDay || new Date());
+  openExercise(ex);
+}
+let calSelectedDateKey = null;
+
+
+// ============================================================
+// EXERCISE SETUP
+// ============================================================
+function openExercise(ex) {
+  currentExercise = ex;
+  sessionData = { reps: 0, correctReps: 0, scores: [], startTime: null, paused: false };
+
+  // — Pose SVG —
+  const svgKey = ex.id || 'default';
+  const svg = POSE_SVG[svgKey] || POSE_SVG.default;
+  document.getElementById('pose-svg-box').innerHTML = svg;
+
+  // — Title & brief guide —
+  document.getElementById('pose-guide-title').textContent = ex.name;
+  document.getElementById('pose-guide-body').textContent = ex.guide || '';
+
+  // — Step-by-step —
+  const stepData = EXERCISE_STEPS[svgKey] || EXERCISE_STEPS[ex.id];
+  const stepList = document.getElementById('pose-step-list');
+  if (stepData) {
+    stepList.innerHTML = (stepData.steps || []).map((s, i) =>
+      `<div class="pose-step-item">
+        <div class="pose-step-num">${i+1}</div>
+        <div class="pose-step-text">${s}</div>
+      </div>`).join('');
+
+    // Warning
+    const warnEl = document.getElementById('pose-warning');
+    const warnText = document.getElementById('pose-warning-text');
+    if (stepData.warning) {
+      warnText.textContent = stepData.warning;
+      warnEl.style.display = 'flex';
+    } else {
+      warnEl.style.display = 'none';
+    }
+
+    // Medical badge
+    const medText = document.getElementById('pose-medical-text');
+    if (medText && stepData.medical) {
+      medText.innerHTML = stepData.medical;
+    }
+  } else {
+    stepList.innerHTML = `<div class="pose-step-item"><div class="pose-step-num">1</div><div class="pose-step-text">${ex.guide || 'ทำตามท่าที่แสดง'}</div></div>`;
+    document.getElementById('pose-warning').style.display = 'none';
+  }
+
+  // — Camera UI reset —
+  document.getElementById('cam-ex-name').textContent = ex.name;
+  document.getElementById('cam-age-mode').textContent = PROGRAMS[currentAge].mode;
+  document.getElementById('rep-count').textContent = '0';
+  document.getElementById('live-score').textContent = '—';
+  document.getElementById('pose-guide').classList.remove('hidden');
+  document.getElementById('cam-ui').style.display = 'none';
+
+  // Show/hide timer vs reps
+  const isTimedEx = ['plank','skip','walk_in_place'].includes(ex.id);
+  document.getElementById('timer-badge').style.display = isTimedEx ? 'flex' : 'none';
+  document.getElementById('rep-counter-wrap').style.display = isTimedEx ? 'none' : 'flex';
+  document.getElementById('rep-label').textContent = 'ครั้ง';
+
+  showScreen('camera-screen', -1);
+  initCamera();
+}
+
+async function initCamera() {
+  try {
+    if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); }
+    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    const video = document.getElementById('video');
+    video.srcObject = videoStream;
+    await video.play();
+    resizeCanvas();
+    setupPose();
+  } catch(e) {
+    speakText('ไม่สามารถเปิดกล้องได้ กรุณาอนุญาตการใช้กล้อง');
+    showDemoMode();
+  }
+}
+
+function resizeCanvas() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('overlay-canvas');
+  const container = document.getElementById('camera-container');
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+}
+
+function showDemoMode() {
+  const guide = document.getElementById('pose-guide');
+  guide.querySelector('.pose-body').innerHTML = '⚠️ ไม่พบกล้อง — กำลังใช้โหมดสาธิต<br>กดเริ่มเพื่อทดลองระบบ';
+  guide.querySelector('.btn-start-exercise').textContent = '🎯 ทดลองโหมดสาธิต';
+}
+
+function setupPose() {
+  if (typeof Pose === 'undefined') return;
+  pose = new Pose({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+  pose.setOptions({ modelComplexity: 1, smoothLandmarks: true, enableSegmentation: false, minDetectionConfidence: 0.6, minTrackingConfidence: 0.5 });
+  pose.onResults(onPoseResults);
+  const video = document.getElementById('video');
+  camera = new Camera(video, {
+    onFrame: async () => { if (exerciseActive && !sessionData.paused) await pose.send({ image: video }); },
+    width: 640, height: 480
+  });
+  camera.start();
+}
+
+function startExercise() {
+  exerciseActive = true;
+  exerciseElapsedSecs = 0;
+  sessionData.startTime = Date.now();
+  document.getElementById('pose-guide').classList.add('hidden');
+  document.getElementById('cam-ui').style.display = 'flex';
+  speakText(`เริ่ม ${currentExercise.name} เลย!`);
+
+  // Start elapsed timer display
+  if (exerciseTimerInterval) clearInterval(exerciseTimerInterval);
+  exerciseTimerInterval = setInterval(() => {
+    if (!sessionData.paused && exerciseActive) {
+      exerciseElapsedSecs++;
+      const m = Math.floor(exerciseElapsedSecs / 60);
+      const s = exerciseElapsedSecs % 60;
+      const timerEl = document.getElementById('exercise-timer');
+      if (timerEl) timerEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+
+      // For timed exercises, also update rep count as seconds
+      const isTimedEx = ['plank','skip','walk_in_place'].includes(currentExercise?.id);
+      if (isTimedEx) {
+        sessionData.reps = exerciseElapsedSecs;
+        sessionData.correctReps = exerciseElapsedSecs;
+      }
+
+      // Auto-complete timed exercises
+      if (isTimedEx && currentExercise.target && exerciseElapsedSecs >= currentExercise.target) {
+        speakText(`ครบ ${currentExercise.target} วินาทีแล้ว ยอดเยี่ยม!`);
+        showAchievement('🎯', 'ครบเวลา!', `${currentExercise.name} ${currentExercise.target} วิ`);
+      }
+    }
+  }, 1000);
+}
+
+// ============================================================
+// POSE ANALYSIS ENGINE
+// ============================================================
+function calcAngle(a, b, c) {
+  const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+  let angle = Math.abs(radians * 180 / Math.PI);
+  if (angle > 180) angle = 360 - angle;
+  return angle;
+}
+
+function getLandmarks(lm) {
+  return {
+    lShoulder: lm[11], rShoulder: lm[12],
+    lElbow: lm[13], rElbow: lm[14],
+    lWrist: lm[15], rWrist: lm[16],
+    lHip: lm[23], rHip: lm[24],
+    lKnee: lm[25], rKnee: lm[26],
+    lAnkle: lm[27], rAnkle: lm[28],
+    nose: lm[0]
+  };
+}
+
+function analyzeExercise(lm) {
+  const p = getLandmarks(lm);
+  const ex = currentExercise;
+  let score = 100, corrections = [], status = 'good';
+  const isSenior = PROGRAMS[currentAge].exercises.some(e => e.id === ex.id && e.senior);
+  const speedMult = isSenior ? 0.7 : 1.0;
+
+  if (ex.id === 'squat' || ex.id === 'squat_adult') {
+    const kneeAngle = calcAngle(p.lHip, p.lKnee, p.lAnkle);
+    const hipAngle = calcAngle(p.lShoulder, p.lHip, p.lKnee);
+    const isDown = kneeAngle < 110;
+    const isUp = kneeAngle > 160;
+    const backStr = hipAngle < 80 ? 'ตรง' : hipAngle < 100 ? 'เอียงนิด' : 'โค้งมาก';
+    if (hipAngle > 100) { corrections.push('หลังตรงกว่านี้'); score -= 25; status = 'warn'; }
+    if (kneeAngle < 60) { corrections.push('เข่างอมากเกินไป'); score -= 15; status = 'warn'; }
+    countRep(isDown, isUp, score, corrections);
+    return { score, corrections, status: corrections.length > 0 ? 'warn' : 'good',
+      message: isDown ? `งอเข่า ${Math.round(kneeAngle)}° — หลัง${backStr}` : isUp ? 'ยืนตรง พร้อมลงอีกรอบ' : `กำลังลง... เข่า ${Math.round(kneeAngle)}°` };
+  }
+
+  if (ex.id === 'arm_raise') {
+    const lShoulderAngle = calcAngle(p.lElbow, p.lShoulder, p.lHip);
+    const rShoulderAngle = calcAngle(p.rElbow, p.rShoulder, p.rHip);
+    const avgAngle = (lShoulderAngle + rShoulderAngle) / 2;
+    const isUp = avgAngle > 75;
+    const isDown = avgAngle < 25;
+    const symm = Math.abs(lShoulderAngle - rShoulderAngle);
+    if (symm > 20) { corrections.push('ยกแขนให้สมดุลทั้งสองข้าง'); score -= 20; status = 'warn'; }
+    if (isUp && avgAngle < 80) { corrections.push('ยกแขนขึ้นอีกนิด'); score -= 10; }
+    countRep(isUp, isDown, score, corrections);
+    return { score, corrections, status: corrections.length > 0 ? 'warn' : 'good',
+      message: isUp ? `ยกแขน ${Math.round(avgAngle)}° — ดี!` : `ลดแขน ${Math.round(avgAngle)}°` };
+  }
+
+  if (ex.id === 'shoulder_roll') {
+    const lShoulderAngle = calcAngle(p.lElbow, p.lShoulder, p.lHip);
+    const rShoulderAngle = calcAngle(p.rElbow, p.rShoulder, p.rHip);
+    const isRaised = lShoulderAngle > 45 || rShoulderAngle > 45;
+    const isDown = lShoulderAngle < 20 && rShoulderAngle < 20;
+    countRep(isRaised, isDown, score, corrections);
+    return { score, corrections: [], status: 'good', message: isRaised ? 'หมุนไหล่ขึ้น' : 'หมุนไหล่ลง' };
+  }
+
+  if (ex.id === 'lunge') {
+    const kneeAngle = calcAngle(p.lHip, p.lKnee, p.lAnkle);
+    const isDown = kneeAngle < 105;
+    const isUp = kneeAngle > 160;
+    if (isDown && kneeAngle < 70) { corrections.push('เข่างอมากเกินไป'); score -= 15; }
+    countRep(isDown, isUp, score, corrections);
+    return { score, corrections, status: corrections.length > 0 ? 'warn' : 'good',
+      message: isDown ? `ก้าวลง เข่า ${Math.round(kneeAngle)}°` : 'ยืนตรง' };
+  }
+
+  if (ex.id === 'balance_senior' || ex.id === 'balance_child') {
+    const lKneeAngle = calcAngle(p.lHip, p.lKnee, p.lAnkle);
+    const rKneeAngle = calcAngle(p.rHip, p.rKnee, p.rAnkle);
+    const shoulderWidth = Math.abs(p.lShoulder.x - p.rShoulder.x);
+    const hipWidth = Math.abs(p.lHip.x - p.rHip.x);
+    const balanced = hipWidth < shoulderWidth * 0.5;
+    if (!balanced) { corrections.push('ยืนให้มั่นคงกว่านี้'); score -= 20; status = 'warn'; }
+    if (isSenior) {
+      const tilt = Math.abs(p.lShoulder.y - p.rShoulder.y);
+      if (tilt > 0.05) { corrections.push('ไหล่เอียง ระวังล้ม'); score -= 30; status = 'error'; showFallAlert(); }
+    }
+    return { score, corrections, status, message: balanced ? 'ทรงตัวดี 👍' : 'พยายามทรงตัว' };
+  }
+
+  if (ex.id === 'sit_stand') {
+    const hipAngle = calcAngle(p.lShoulder, p.lHip, p.lKnee);
+    const isStanding = hipAngle > 150;
+    const isSitting = hipAngle < 100;
+    if (isSitting && hipAngle < 60) { corrections.push('ระวัง ลงช้าๆ'); score -= 10; }
+    countRep(isStanding, isSitting, score, corrections);
+    return { score, corrections, status: corrections.length > 0 ? 'warn' : 'good',
+      message: isStanding ? 'ยืนตรง ดีมาก' : 'นั่งลงช้าๆ' };
+  }
+
+  if (ex.id === 'jump' || ex.id === 'skip') {
+    const lKneeAngle = calcAngle(p.lHip, p.lKnee, p.lAnkle);
+    const isUp = lKneeAngle > 160;
+    const isLanded = lKneeAngle < 140;
+    countRep(isLanded, isUp, score, corrections);
+    return { score, corrections: [], status: 'good', message: '🎮 กระโดดขึ้น!' };
+  }
+
+  if (ex.id === 'walk_in_place') {
+    const lKneeAngle = calcAngle(p.lHip, p.lKnee, p.lAnkle);
+    const isLifted = lKneeAngle < 140;
+    const isDown = lKneeAngle > 165;
+    countRep(isLifted, isDown, score, corrections);
+    return { score, corrections: [], status: 'good', message: '🚶 เดินช้าๆ' };
+  }
+
+  if (ex.id === 'neck_stretch') {
+    const lShoulderY = p.lShoulder.y;
+    const rShoulderY = p.rShoulder.y;
+    const diff = Math.abs(lShoulderY - rShoulderY);
+    const isStretching = diff > 0.03;
+    const isStraight = diff < 0.01;
+    if (isStretching && diff > 0.08) { corrections.push('เอียงเบาๆ อย่าฝืน'); score -= 10; }
+    countRep(isStretching, isStraight, score, corrections);
+    return { score, corrections, status: corrections.length > 0 ? 'warn' : 'good', message: isStretching ? 'ยืดดีมาก' : 'กลับตรง' };
+  }
+
+  if (ex.id === 'back_stretch') {
+    const hipAngle = calcAngle(p.lShoulder, p.lHip, p.lKnee);
+    const shoulderY = (p.lShoulder.y + p.rShoulder.y) / 2;
+    const hipY = (p.lHip.y + p.rHip.y) / 2;
+    const isBent = shoulderY > hipY - 0.05;
+    const isStraight = hipAngle > 160;
+    countRep(isBent, isStraight, score, corrections);
+    return { score, corrections: [], status: 'good', message: isBent ? 'ยืดหลังดีมาก' : 'ยืนตรง' };
+  }
+
+  if (ex.id === 'pushup') {
+    const elbowAngle = calcAngle(p.lShoulder, p.lElbow, p.lWrist);
+    const isDown = elbowAngle < 90;
+    const isUp = elbowAngle > 155;
+    if (isDown && elbowAngle > 70) { corrections.push('ลงให้ต่ำกว่านี้'); score -= 15; }
+    countRep(isDown, isUp, score, corrections);
+    return { score, corrections, status: corrections.length > 0 ? 'warn' : 'good',
+      message: isDown ? `ลงต่ำ ข้อศอก ${Math.round(elbowAngle)}°` : 'ดันขึ้น' };
+  }
+
+  if (ex.id === 'plank') {
+    const hipAngle = calcAngle(p.lShoulder, p.lHip, p.lKnee);
+    const backStraight = hipAngle > 155 && hipAngle < 195;
+    if (!backStraight) { corrections.push(hipAngle < 155 ? 'ยกสะโพกขึ้น' : 'กดสะโพกลง'); score -= 25; status = 'warn'; }
+    if (!repCooldown) {
+      repCooldown = true;
+      sessionData.reps++;
+      sessionData.correctReps++;
+      updateRepUI(score, []);
+      setTimeout(() => repCooldown = false, 3000);
+    }
+    return { score: backStraight ? 95 : 60, corrections, status: backStraight ? 'good' : 'warn',
+      message: backStraight ? 'แพลงก์สมบูรณ์ เกร็งต่อไป' : 'ปรับตำแหน่ง' };
+  }
+
+  if (ex.id === 'stretch_child') {
+    const lArmAngle = calcAngle(p.lHip, p.lShoulder, p.lWrist);
+    const isStretched = lArmAngle > 80;
+    const isRest = lArmAngle < 30;
+    countRep(isStretched, isRest, score, corrections);
+    return { score, corrections: [], status: 'good', message: isStretched ? '🌟 ยืดดีมาก!' : 'กลับมาตั้งตรง' };
+  }
+
+  return { score: 80, corrections: [], status: 'good', message: 'กำลังตรวจท่าทาง...' };
+}
+
+function countRep(isDown, isUp, score, corrections) {
+  if (isDown && lastRepState === 'up' && !repCooldown) {
+    lastRepState = 'down';
+  }
+  if (isUp && lastRepState === 'down' && !repCooldown) {
+    lastRepState = 'up';
+    repCooldown = true;
+    sessionData.reps++;
+    if (score >= 60) { sessionData.correctReps++; }
+    sessionData.scores.push(score);
+    updateRepUI(score, corrections);
+    setTimeout(() => repCooldown = false, 800);
+    const ex = currentExercise;
+    if (sessionData.reps === ex.target) {
+      setTimeout(() => { speakText(`เยี่ยม! ครบ ${ex.target} ครั้งแล้ว`); }, 300);
+      showAchievement('🎯', 'ครบเป้าหมาย!', `${ex.name} ${ex.target} ครั้ง`);
+    }
+    if (score >= 90) speakText('ดีมาก');
+    else if (score >= 70) speakText('ถูกต้อง');
+    else speakText(corrections[0] || 'ปรับท่าหน่อย');
+  }
+}
+
+function updateRepUI(score, corrections) {
+  const repEl = document.getElementById('rep-count');
+  repEl.textContent = sessionData.reps;
+  repEl.classList.remove('count-anim');
+  void repEl.offsetWidth;
+  repEl.classList.add('count-anim');
+  document.getElementById('live-score').textContent = Math.round(score);
+}
+
+// ============================================================
+// POSE RENDERING
+// ============================================================
+function onPoseResults(results) {
+  const canvas = document.getElementById('overlay-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!results.poseLandmarks) {
+    updateFeedback('กำลังตรวจจับท่าทาง...', [], 'warn');
+    checkStationary();
+    return;
+  }
+
+  lastMovementTime = Date.now();
+  drawSkeleton(ctx, results.poseLandmarks, canvas);
+  const analysis = analyzeExercise(results.poseLandmarks);
+  updateFeedback(analysis.message, analysis.corrections, analysis.status);
+  document.getElementById('live-score').textContent = Math.round(analysis.score);
+}
+
+function drawSkeleton(ctx, lm, canvas) {
+  const w = canvas.width, h = canvas.height;
+  const connections = [
+    [11,12],[11,13],[13,15],[12,14],[14,16],
+    [11,23],[12,24],[23,24],[23,25],[24,26],
+    [25,27],[26,28]
+  ];
+  const isSenior = currentAge === 'senior';
+  const lineColor = isSenior ? '#10B981' : currentAge === 'child' ? '#FF9F43' : currentAge === 'teen' ? '#A855F7' : '#3B7EF6';
+  const dotColor = '#fff';
+
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = lineColor;
+  ctx.globalAlpha = 0.85;
+  connections.forEach(([a, b]) => {
+    const pa = lm[a], pb = lm[b];
+    if (pa && pb && pa.visibility > 0.5 && pb.visibility > 0.5) {
+      ctx.beginPath();
+      ctx.moveTo(pa.x * w, pa.y * h);
+      ctx.lineTo(pb.x * w, pb.y * h);
+      ctx.stroke();
+    }
+  });
+
+  const keyPoints = [11,12,13,14,15,16,23,24,25,26,27,28];
+  keyPoints.forEach(i => {
+    const p = lm[i];
+    if (p && p.visibility > 0.5) {
+      ctx.beginPath();
+      ctx.arc(p.x * w, p.y * h, 5, 0, Math.PI * 2);
+      ctx.fillStyle = lineColor;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(p.x * w, p.y * h, 3, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor;
+      ctx.fill();
+    }
+  });
+  ctx.globalAlpha = 1;
+}
+
+function updateFeedback(message, corrections, status) {
+  const dot = document.getElementById('feed-dot');
+  const text = document.getElementById('feed-text');
+  const list = document.getElementById('correction-list');
+  dot.className = 'feedback-dot ' + status;
+  text.textContent = message;
+  list.innerHTML = corrections.slice(0, 2).map(c => `<div class="correction-item">${c}</div>`).join('');
+}
+
+// ============================================================
+// EXERCISE CONTROL
+// ============================================================
+function togglePause() {
+  sessionData.paused = !sessionData.paused;
+  document.getElementById('pause-btn').textContent = sessionData.paused ? '▶ ต่อเลย' : '⏸ หยุดชั่วคราว';
+}
+
+function stopExercise() {
+  exerciseActive = false;
+  if (exerciseTimerInterval) { clearInterval(exerciseTimerInterval); exerciseTimerInterval = null; }
+  if (camera) { try { camera.stop(); } catch(e) {} }
+  if (videoStream) { videoStream.getTracks().forEach(t => t.stop()); }
+  const elapsed = Math.round((Date.now() - (sessionData.startTime || Date.now())) / 1000);
+  const avgScore = sessionData.scores.length > 0 ? Math.round(sessionData.scores.reduce((a,b)=>a+b,0)/sessionData.scores.length) : 0;
+  saveSession(avgScore, elapsed);
+  showResults(avgScore, elapsed);
+}
+
+function showResults(avgScore, elapsed) {
+  const grade = avgScore >= 90 ? 'ยอดเยี่ยม! 🏆' : avgScore >= 75 ? 'ดีมาก! 🎉' : avgScore >= 60 ? 'ดี 👍' : 'ต้องฝึกเพิ่ม 💪';
+  document.getElementById('final-score').textContent = avgScore || '—';
+  document.getElementById('final-grade').textContent = grade;
+  document.getElementById('final-ex').textContent = `${currentExercise.name} • ${PROGRAMS[currentAge].title}`;
+  document.getElementById('r-reps').textContent = sessionData.reps;
+  document.getElementById('r-correct').textContent = sessionData.correctReps;
+  const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+  document.getElementById('r-time').textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+
+  const tips = {
+    child: '🎮 เยี่ยมมาก! ลองทำให้เร็วขึ้นในรอบหน้า หรือแข่งกับเพื่อน!',
+    teen: '💪 เก่งมาก! เพิ่มรอบหรือลองท่าที่ยากขึ้นเพื่อ Level Up!',
+    adult: '✨ ทำได้ดีมาก ลองฝึกยืดไหล่ต่อเพื่อแก้ออฟฟิศซินโดรม',
+    senior: '🌟 ดีมากเลย! ค่อยๆ เพิ่มจำนวนครั้งในสัปดาห์หน้า'
+  };
+  document.getElementById('ai-tip-text').textContent = tips[currentAge];
+
+  const feedbacks = [];
+  if (sessionData.correctReps < sessionData.reps) feedbacks.push({ icon:'⚠️', text:`มี ${sessionData.reps - sessionData.correctReps} ครั้งที่ท่ายังไม่สมบูรณ์ ลองทำช้าๆ และดูคำแนะนำ` });
+  if (avgScore >= 80) feedbacks.push({ icon:'✅', text:'ท่าทางดีมาก! AI ตรวจสอบแล้วว่าถูกต้องตามหลักกายภาพ' });
+  feedbacks.push({ icon:'📌', text:`ฝึกสม่ำเสมอ ${PROGRAMS[currentAge].exercises.length} ท่า อาทิตย์ละ 3 ครั้งเพื่อผลลัพธ์ที่ดี` });
+
+  const fi = document.getElementById('feedback-items');
+  fi.innerHTML = feedbacks.map(f => `<div class="feedback-item"><div class="fi-icon">${f.icon}</div><div class="fi-text">${f.text}</div></div>`).join('');
+
+  if (avgScore >= 90) showAchievement('🏆', 'Perfect Score!', `คะแนน ${avgScore}%`);
+  else if (sessionData.reps >= (currentExercise.target || 10)) showAchievement('🎯', 'ครบเป้าหมาย!', `${sessionData.reps} ครั้ง`);
+
+  showScreen('results', -1);
+}
+
+function retryExercise() {
+  openExercise(currentExercise);
+}
+
+// ============================================================
+// SAVE SESSION
+// ============================================================
+function saveSession(score, elapsed) {
+  const now = new Date();
+  const entry = {
+    date: now.toLocaleDateString('th-TH'),
+    dateKey: dateKey(now),
+    exercise: currentExercise.name,
+    age: PROGRAMS[currentAge].title,
+    reps: sessionData.reps,
+    correctReps: sessionData.correctReps,
+    score,
+    elapsed,
+    ts: Date.now()
+  };
+  sessionHistory.unshift(entry);
+  if (sessionHistory.length > 100) sessionHistory.pop();
+  localStorage.setItem('physio_history', JSON.stringify(sessionHistory));
+}
+
+function updateHomeStats() {
+  const total = sessionHistory.length;
+  document.getElementById('stat-sessions').textContent = total;
+  if (total > 0) {
+    const avg = Math.round(sessionHistory.slice(0,10).reduce((a,b)=>a+b.score,0) / Math.min(10,total));
+    document.getElementById('stat-avg').textContent = avg + '%';
+  }
+  const streak = calcStreak();
+  document.getElementById('stat-streak').textContent = streak;
+  const week = sessionHistory.filter(s => Date.now() - s.ts < 7*24*3600*1000);
+  document.getElementById('weekly-reps').textContent = week.reduce((a,b)=>a+b.reps,0);
+  document.getElementById('weekly-mins').textContent = Math.round(week.reduce((a,b)=>a+b.elapsed,0)/60);
+  const best = week.length > 0 ? Math.max(...week.map(s=>s.score)) : 0;
+  document.getElementById('weekly-score').textContent = best > 0 ? best + '%' : '—';
+}
+
+function calcStreak() {
+  if (sessionHistory.length === 0) return 0;
+  const dates = [...new Set(sessionHistory.map(s => s.date))];
+  let streak = 1;
+  const today = new Date().toLocaleDateString('th-TH');
+  if (!dates.includes(today)) return 0;
+  for (let i = 1; i < 30; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    if (dates.includes(d.toLocaleDateString('th-TH'))) streak++;
+    else break;
+  }
+  return streak;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function buildDashboard() {
+  buildChart();
+  buildStreakDots();
+  buildHistoryList();
+  buildLeaderboard();
+}
+
+function buildChart() {
+  const bars = document.getElementById('chart-bars');
+  bars.innerHTML = '';
+  const days = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+  const scores = [0,0,0,0,0,0,0];
+  sessionHistory.forEach(s => {
+    const d = new Date(s.ts).getDay();
+    const idx = d === 0 ? 6 : d - 1;
+    if (!scores[idx] || s.score > scores[idx]) scores[idx] = s.score;
+  });
+  const maxScore = Math.max(...scores, 10);
+  scores.forEach((score, i) => {
+    const h = Math.round((score / maxScore) * 90);
+    const bar = document.createElement('div');
+    bar.className = 'bar-wrap';
+    bar.innerHTML = `<div class="bar" style="height:${h}px;opacity:${score?1:0.3}"></div><div class="bar-label">${days[i]}</div>`;
+    bars.appendChild(bar);
+  });
+}
+
+function buildStreakDots() {
+  const row = document.getElementById('streak-row');
+  row.innerHTML = '';
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toLocaleDateString('th-TH');
+    const done = sessionHistory.some(s => s.date === dateStr);
+    const isToday = i === 0;
+    const dot = document.createElement('div');
+    dot.className = 'streak-dot ' + (isToday && done ? 'today' : done ? 'done' : 'miss');
+    dot.textContent = d.getDate();
+    row.appendChild(dot);
+  }
+}
+
+function buildHistoryList() {
+  const list = document.getElementById('history-list');
+  list.innerHTML = '';
+  if (sessionHistory.length === 0) {
+    list.innerHTML = '<div style="color:var(--text3);font-size:14px;padding:12px">ยังไม่มีประวัติ เริ่มฝึกได้เลย!</div>';
+    return;
+  }
+  sessionHistory.slice(0, 6).forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `<div class="hi-left"><div class="hi-name">${s.exercise}</div><div class="hi-date">${s.date} • ${s.reps} ครั้ง • ${s.age}</div></div><div class="hi-score">${s.score}%</div>`;
+    list.appendChild(item);
+  });
+}
+
+function buildLeaderboard() {
+  const lb = document.getElementById('leaderboard');
+  const names = ['คุณ 🏠', 'Alex K.', 'Noi T.', 'Moo P.', 'Wan S.'];
+  const myScore = sessionHistory.slice(0,5).reduce((a,b)=>a+b.score,0) || 320;
+  const scores = [myScore, 480, 420, 380, 340].sort((a,b)=>b-a);
+  lb.innerHTML = '';
+  scores.slice(0,5).forEach((pts, i) => {
+    const name = pts === myScore ? names[0] : names[i+1] || names[i];
+    const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1+'';
+    const item = document.createElement('div');
+    item.className = 'lb-item';
+    item.innerHTML = `<div class="lb-rank ${rankClass}">${medal}</div><div class="lb-info"><div class="lb-name">${pts===myScore?'คุณ':name}</div><div class="lb-score">คะแนนสัปดาห์นี้</div></div><div class="lb-pts">${pts}</div>`;
+    lb.appendChild(item);
+  });
+}
+
+// ============================================================
+// SENIOR SAFETY: FALL DETECTION
+// ============================================================
+let fallAlertShown = false;
+function showFallAlert() {
+  if (fallAlertShown || currentAge !== 'senior') return;
+  fallAlertShown = true;
+  document.getElementById('alert-body').textContent = 'ตรวจพบการทรงตัวไม่มั่นคง อาจเสี่ยงล้ม ต้องการแจ้งผู้ดูแลไหม?';
+  document.getElementById('alert-modal').classList.remove('hidden');
+  speakText('ระวัง ทรงตัวไม่มั่นคง');
+  setTimeout(() => fallAlertShown = false, 10000);
+}
+
+function checkStationary() {
+  if (currentAge !== 'senior') return;
+  const idle = Date.now() - lastMovementTime;
+  if (idle > 15000 && exerciseActive) {
+    document.getElementById('alert-body').textContent = 'ผู้สูงอายุไม่ขยับเป็นเวลานาน กรุณาตรวจสอบ';
+    document.getElementById('alert-modal').classList.remove('hidden');
+    lastMovementTime = Date.now();
+  }
+}
+
+function closeAlert() {
+  document.getElementById('alert-modal').classList.add('hidden');
+}
+
+function callCaregiver() {
+  closeAlert();
+  const msg = encodeURIComponent('⚠️ PhysioAI แจ้งเตือน: ตรวจพบความผิดปกติระหว่างการออกกำลังกาย กรุณาตรวจสอบ');
+  window.open(`https://line.me/R/msg/text/?${msg}`, '_blank');
+}
+
+// ============================================================
+// VOICE / TTS
+// ============================================================
+const VOICE_MSGS = {
+  'ดีมาก': 'ดีมาก', 'ถูกต้อง': 'ถูกต้อง', 'ปรับท่าหน่อย': 'ปรับท่าหน่อย',
+  'ยกแขนสูงอีกนิด': 'ยกแขนสูงอีกนิด', 'หลังยังเอียง': 'หลังยังเอียง',
+  'ระวัง ทรงตัวไม่มั่นคง': 'ระวัง ทรงตัวไม่มั่นคง'
+};
+let lastSpoken = '', speechCooldown = false;
+function speakText(text) {
+  if (!VOICE_ENABLED || speechCooldown || text === lastSpoken) return;
+  if (!window.speechSynthesis) return;
+  speechCooldown = true;
+  lastSpoken = text;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'th-TH';
+  utt.rate = currentAge === 'senior' ? 0.8 : 1.0;
+  utt.volume = 0.9;
+  window.speechSynthesis.speak(utt);
+  setTimeout(() => speechCooldown = false, 2000);
+}
+
+// ============================================================
+// ACHIEVEMENTS
+// ============================================================
+function showAchievement(icon, title, sub) {
+  const popup = document.getElementById('ach-popup');
+  document.getElementById('ach-icon').textContent = icon;
+  document.getElementById('ach-title').textContent = title;
+  document.getElementById('ach-sub').textContent = sub;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 3500);
+}
+
+// ============================================================
+// ALERT HELPER
+// ============================================================
+function showAlert(msg) {
+  document.getElementById('alert-body').textContent = msg;
+  document.getElementById('alert-modal').classList.remove('hidden');
+}
+
+// ============================================================
+// INIT — iOS/Android safe
+// ============================================================
+
+// Fix 100vh on mobile browsers (iOS Safari address bar issue)
+function setVH() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', `${vh}px`);
+}
+setVH();
+window.addEventListener('resize', () => {
+  setVH();
+  if (exerciseActive) resizeCanvas();
+});
+// iOS orientation change
+window.addEventListener('orientationchange', () => { setTimeout(setVH, 200); });
+
+// Prevent iOS bounce/overscroll on body
+document.body.addEventListener('touchmove', (e) => {
+  if (e.target === document.body) e.preventDefault();
+}, { passive: false });
+
+// Prevent double-tap zoom on buttons (iOS)
+document.addEventListener('dblclick', (e) => {
+  if (e.target.tagName === 'BUTTON') e.preventDefault();
+}, { passive: false });
+
+setTimeout(() => {
+  document.getElementById('loading').classList.add('hidden');
+  updateHomeStats();
+  // Pre-build evidence for default age
+  buildEvidenceBanner(currentAge);
+  buildRestScience(currentAge);
+  if (sessionHistory.length === 0) {
+    setTimeout(() => showAchievement('👋', 'ยินดีต้อนรับ!', 'เลือกช่วงวัยเพื่อเริ่มต้น'), 800);
+  }
+}, 1800);
+</script>
+</body>
+</html>
